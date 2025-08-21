@@ -1,0 +1,39 @@
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ADa" Width="560" Height="360"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent">
+  <Border CornerRadius="{DynamicResource Ada.Radius}"
+          Background="{DynamicResource Ada.Brush.Window}"
+          BorderBrush="{DynamicResource Ada.Brush.Border}" BorderThickness="1">
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+
+      <Grid x:Name="TopBar" Grid.Row="0" Style="{DynamicResource Ada.HeaderBar}">
+        <DockPanel Margin="12,6,12,6">
+          <TextBlock x:Name="TitleText" Text="Dialog" Style="{DynamicResource Ada.TitleText}" DockPanel.Dock="Left"/>
+          <Button x:Name="button_close" Content="✕" Width="32" Height="28"
+                  Style="{DynamicResource Ada.Button.Secondary}" DockPanel.Dock="Right"/>
+        </DockPanel>
+      </Grid>
+
+      <Grid Grid.Row="1" Margin="12">
+        <Border Style="{DynamicResource Ada.Card}">
+          <StackPanel x:Name="panel_buttons" />
+        </Border>
+
+      </Grid>
+
+      <DockPanel Grid.Row="2" Margin="12">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" DockPanel.Dock="Right">
+          <Button x:Name="button_cancel" Content="Cancel" Style="{DynamicResource Ada.Button.Secondary}"/>
+          <Button x:Name="button_ok"     Content="OK" Margin="8,0,0,0" Style="{DynamicResource Ada.Button}"/>
+        </StackPanel>
+      </DockPanel>
+    </Grid>
+  </Border>
+</Window>
