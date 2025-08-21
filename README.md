@@ -1,2 +1,2 @@
 # ada_ui
-Submodule
+Standardised dialogue box code
