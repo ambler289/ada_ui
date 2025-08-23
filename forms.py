@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ada_ui.forms — XAML-backed dialogs (NameScope-aware)
+ada_ui.forms — NameScope-aware XAML wrapper
 Exposes: alert, confirm, input_text, big_buttons, SelectFromList.show
 """
 from __future__ import annotations
@@ -25,22 +25,19 @@ def _read(p: Path) -> str:
     return p.read_text(encoding="utf-8")
 
 def _parse(xaml_text: str):
-    # parse text into a WPF element/dictionary
     return XamlReader.Parse(StringReader(xaml_text).ReadToEnd())
 
 def _merge_theme(win: Window):
-    """Load Controls.xaml + Theme.xaml as merged dictionaries (prefer Source URI; fallback to parse)."""
+    """Merge Controls.xaml + Theme.xaml; prefer Source URI, fallback to parsing."""
     for name in ("Controls.xaml", "Theme.xaml"):
         path = HERE / name
         if not path.exists():
             continue
         try:
-            # Prefer Source; most robust when dictionaries merge others
             rd = ResourceDictionary()
             rd.Source = Uri(path.as_uri(), UriKind.Absolute)
             win.Resources.MergedDictionaries.Add(rd)
         except Exception:
-            # Fallback: parse the XAML into a ResourceDictionary directly
             try:
                 parsed = _parse(_read(path))
                 if isinstance(parsed, ResourceDictionary):
@@ -48,29 +45,27 @@ def _merge_theme(win: Window):
             except Exception:
                 pass
 
-def _load_win(xaml_name: str) -> Window:
-    """Return a Window hosting the XAML (wrap UserControl in a Window if needed) and merge theme."""
+def _load_win(xaml_name: str):
+    """Return (win, scope) where scope hosts the NameScope (root for FindName)."""
     xaml_path = HERE / xaml_name
     if not xaml_path.exists():
         raise IOError("Missing XAML: {}".format(xaml_path))
     root = _parse(_read(xaml_path))
     if isinstance(root, Window):
         win = root
-        scope = win  # FindName will work on the Window
+        scope = win
     else:
         w = Window()
         w.Content = root
         win = w
-        # If content is a FrameworkElement, it will host the NameScope for FindName()
         scope = root
     _merge_theme(win)
-    # 1 = WidthAndHeight
-    win.SizeToContent = 1
+    win.SizeToContent = 1  # WidthAndHeight
     win.Topmost = True
     return win, scope
 
 def _find(scope, name: str):
-    """Resolve named element from the root NameScope using FindName, with a tiny fallback search."""
+    """Resolve element by x:Name using FindName; small logical fallback search if needed."""
     try:
         if hasattr(scope, "FindName"):
             el = scope.FindName(name)
@@ -78,7 +73,6 @@ def _find(scope, name: str):
                 return el
     except Exception:
         pass
-    # Fallback: very small logical walk (rarely needed if FindName is available)
     try:
         from System.Windows import LogicalTreeHelper as LTH
         q = [scope]
@@ -137,8 +131,8 @@ def confirm(message, title="Confirm", ok_text="Yes", cancel_text="No"):
         if tb is not None:
             tb.Text = String(str(message))
 
-        yes = _find(scope, "button_yes")
-        no  = _find(scope, "button_no")
+        yes = _find(scope, "button_yes") or _find(scope, "button_ok")
+        no  = _find(scope, "button_no")  or _find(scope, "button_cancel")
 
         if yes is not None:
             try: yes.Content = ok_text
@@ -208,7 +202,7 @@ def big_buttons(title, items, message=None, cancel=True):
         try: win.Title = title
         except Exception: pass
 
-        # Optional title/description inside the window, if your XAML has them
+        # Optional title/description inside the window
         title_tb = _find(scope, "TitleText")
         desc_tb  = _find(scope, "text_message")
         if message and desc_tb is not None:
@@ -235,7 +229,6 @@ def big_buttons(title, items, message=None, cancel=True):
                 b.Click += _make(label)
                 host.Children.Add(b)
 
-        # Wire up explicit cancel/ok if present
         cancel_btn = _find(scope, "button_cancel")
         ok_btn     = _find(scope, "button_ok")
 
