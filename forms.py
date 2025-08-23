@@ -1,24 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-ada_ui.forms â€" XAML-backed dialogs for ADa
+ada_ui.forms — XAML-backed dialogs for ADa (Theme-only, self-healing)
 
-Features
-- NameScope-aware part resolution (FindName + logical tree fallback)
-- Robust button host handling (Children / Items / Content->StackPanel)
-- Theming: merges Theme.xaml first (defines tokens like Ada.Radius), then Controls.xaml
-- Visibility guard: prevents invisible windows if theme fails to merge
-- Public API compatible with legacy calls:
-    alert(message, title)
-    confirm(message, title, ok_text, cancel_text) -> bool
-    input_text(prompt, title) -> str|None
-    big_buttons(title, items, message=None, cancel=True) -> str|None
-    SelectFromList.show(items, title, name_attr=None, button_name='OK', multiselect=False)
+- Loads Theme.xaml only (you removed Controls.xaml)
+- If Theme.xaml fails or is missing keys, inject sane defaults in code so UI still looks ADa
+- NameScope-aware lookups; robust button host handling
+- Visibility guard for transparent windows
 """
 
 from __future__ import annotations
 from pathlib import Path
 
-import clr  # type: ignore
+import clr
 clr.AddReference("PresentationFramework")
 clr.AddReference("PresentationCore")
 clr.AddReference("WindowsBase")
@@ -29,14 +22,13 @@ from System.Windows import Window, ResourceDictionary, MessageBox, MessageBoxBut
 from System.Windows.Markup import XamlReader
 from System.Windows.Controls import Button, StackPanel
 from System.Windows import Controls
+from System.Windows.Media import SolidColorBrush, Color, Colors, Brushes
 
-# marker (helpful to confirm which file is loaded)
-__ada_ui_forms_marker__ = "ADa_UI_forms_v1.3"
-
+__ada_ui_forms_marker__ = "ADa_UI_forms_theme_only_v2"
 HERE = Path(__file__).resolve().parent
 
-# Enable theming
 ENABLE_THEME = True
+
 
 # -------------------- helpers --------------------
 def _read(p: Path) -> str:
@@ -47,20 +39,56 @@ def _parse(xaml_text: str):
     return XamlReader.Parse(StringReader(xaml_text).ReadToEnd())
 
 
+def _ensure_theme_tokens(win):
+    """Make sure the theme tokens our UI relies on exist, even if Theme.xaml is broken."""
+    rd = win.Resources
+
+    def _has(key):
+        try:
+            _ = rd[key]; return True
+        except Exception:
+            return False
+
+    def _put(key, val):
+        try:
+            if not _has(key):
+                rd[key] = val
+        except Exception:
+            try:
+                rd.Add(key, val)
+            except Exception:
+                pass
+
+    _put("Ada.Radius", Controls.CornerRadius(12, 12, 12, 12))
+    _put("Ada.Padding", Controls.Thickness(12))
+    _put("Ada.Primary", Color.FromArgb(0xFF, 0x0A, 0x84, 0xFF))
+    # Build brushes from color if needed
+    if not _has("Ada.PrimaryBrush"):
+        try:
+            col = rd["Ada.Primary"] if _has("Ada.Primary") else Color.FromArgb(0xFF, 0x46, 0x7C, 0xD8)
+            rd["Ada.PrimaryBrush"] = SolidColorBrush(col)
+        except Exception:
+            rd["Ada.PrimaryBrush"] = SolidColorBrush(Colors.SteelBlue)
+    _put("Ada.PrimaryBrush.Fg", SolidColorBrush(Colors.White))
+
+
 def _merge_theme(win):
-    """Load theme resources."""
+    """Load Theme.xaml (single dictionary) and guarantee required tokens exist."""
     if not ENABLE_THEME:
         return
-    
-    # Load the combined Theme.xaml file
+
     theme_path = HERE / "Theme.xaml"
     if theme_path.exists():
         try:
             theme_dict = _parse(_read(theme_path))
             if isinstance(theme_dict, ResourceDictionary):
                 win.Resources.MergedDictionaries.Add(theme_dict)
-        except Exception as e:
-            print(f"Failed to load Theme.xaml: {e}")
+        except Exception:
+            # swallow parse error; we’ll inject defaults below
+            pass
+
+    # Ensure tokens exist even if Theme.xaml failed or was partial
+    _ensure_theme_tokens(win)
 
 
 def _load_win(xaml_name: str):
@@ -79,21 +107,18 @@ def _load_win(xaml_name: str):
         win = w
         scope = root
 
-    # Apply theming before setting other properties
     _merge_theme(win)
 
-    # Set window properties programmatically
+    # Center window (in case Theme.xaml doesn’t set it)
     try:
         from System.Windows import WindowStartupLocation
         win.WindowStartupLocation = WindowStartupLocation.CenterOwner
     except Exception:
         pass
 
-    # Visibility guard: if AllowsTransparency is True and background is transparent/None,
-    # the window can be effectively invisible. Make it visible.
+    # Visibility guard: prevent invisible transparent windows
     try:
         if hasattr(win, "AllowsTransparency") and bool(win.AllowsTransparency):
-            from System.Windows.Media import Brushes
             bg = win.Background
             if bg is None or str(bg) in ("Transparent", "#00FFFFFF"):
                 win.AllowsTransparency = False
@@ -134,23 +159,47 @@ def _find(scope, name: str):
     return None
 
 
+def _style_button_from_theme(btn, win):
+    """Apply ADa button look from theme tokens (works even without styles in XAML)."""
+    rd = win.Resources
+    try:
+        btn.Background = rd["Ada.PrimaryBrush"]
+    except Exception:
+        btn.Background = Brushes.SteelBlue
+    try:
+        btn.Foreground = rd["Ada.PrimaryBrush.Fg"]
+    except Exception:
+        btn.Foreground = Brushes.White
+    try:
+        pad = rd["Ada.Padding"] if "Ada.Padding" in rd else Controls.Thickness(12)
+        btn.Padding = pad
+    except Exception:
+        pass
+    try:
+        btn.Margin = Controls.Thickness(6)
+    except Exception:
+        pass
+    try:
+        btn.Height = 36
+        btn.MinWidth = 220
+    except Exception:
+        pass
+
+
 def _host_add_child(host, child):
     """Add child to a variety of host types."""
-    # Case 1: Panels (StackPanel, Grid-as-Panel, UniformGrid, DockPanel, etc.)
     if hasattr(host, "Children"):
         try:
             host.Children.Add(child)
             return True
         except Exception:
             pass
-    # Case 2: ItemsControls (ListBox, ItemsControl, etc.)
     if hasattr(host, "Items"):
         try:
             host.Items.Add(child)
             return True
         except Exception:
             pass
-    # Case 3: ContentControls (ContentPresenter-like) â€" create a StackPanel
     if hasattr(host, "Content"):
         try:
             sp = StackPanel()
@@ -179,6 +228,8 @@ def alert(message, title="Message"):
         cancel = _find(scope, "button_cancel")
 
         if ok is not None:
+            _style_button_from_theme(ok, win)
+
             def _ok(sender, e):
                 try:
                     win.DialogResult = True
@@ -188,6 +239,8 @@ def alert(message, title="Message"):
             ok.Click += _ok
 
         if cancel is not None:
+            _style_button_from_theme(cancel, win)
+
             def _cancel(sender, e):
                 try:
                     win.DialogResult = False
@@ -198,7 +251,6 @@ def alert(message, title="Message"):
 
         win.ShowDialog()
     except Exception:
-        # last-resort fallback
         MessageBox.Show(str(message), str(title))
 
 
@@ -222,6 +274,7 @@ def confirm(message, title="Confirm", ok_text="Yes", cancel_text="No"):
                 yes.Content = ok_text
             except Exception:
                 pass
+            _style_button_from_theme(yes, win)
 
             def _yes(sender, e):
                 try:
@@ -236,6 +289,7 @@ def confirm(message, title="Confirm", ok_text="Yes", cancel_text="No"):
                 no.Content = cancel_text
             except Exception:
                 pass
+            _style_button_from_theme(no, win)
 
             def _no(sender, e):
                 try:
@@ -271,6 +325,8 @@ def input_text(prompt="Enter text", title="Input"):
         cancel = _find(scope, "button_cancel")
 
         if ok is not None:
+            _style_button_from_theme(ok, win)
+
             def _ok(sender, e):
                 result["text"] = box.Text if box is not None else ""
                 try:
@@ -281,6 +337,8 @@ def input_text(prompt="Enter text", title="Input"):
             ok.Click += _ok
 
         if cancel is not None:
+            _style_button_from_theme(cancel, win)
+
             def _cancel(sender, e):
                 result["text"] = None
                 try:
@@ -305,7 +363,6 @@ def big_buttons(title, items, message=None, cancel=True):
         except Exception:
             pass
 
-        # Title/description area
         title_tb = _find(scope, "TitleText")
         if message and title_tb is not None:
             try:
@@ -332,9 +389,7 @@ def big_buttons(title, items, message=None, cancel=True):
             for label in items:
                 b = Button()
                 b.Content = String(str(label))
-                b.Margin = Controls.Thickness(6)
-                b.MinWidth = 220
-                b.Height = 36
+                _style_button_from_theme(b, win)
                 b.Click += _make(label)
                 _host_add_child(host, b)
 
@@ -342,6 +397,8 @@ def big_buttons(title, items, message=None, cancel=True):
         ok_btn = _find(scope, "button_ok")
 
         if cancel and cancel_btn is not None:
+            _style_button_from_theme(cancel_btn, win)
+
             def _cancel(sender, e):
                 result["choice"] = None
                 try:
@@ -352,6 +409,8 @@ def big_buttons(title, items, message=None, cancel=True):
             cancel_btn.Click += _cancel
 
         if ok_btn is not None:
+            _style_button_from_theme(ok_btn, win)
+
             def _ok(sender, e):
                 if result["choice"] is None and items:
                     result["choice"] = items[0]
@@ -382,7 +441,6 @@ class SelectFromList(object):
             if lb is None:
                 return None
 
-            # Single / Multi
             from System.Windows.Controls import SelectionMode
             lb.SelectionMode = SelectionMode.Multiple if multiselect else SelectionMode.Single
 
@@ -404,10 +462,10 @@ class SelectFromList(object):
                     ok.Content = button_name
                 except Exception:
                     pass
+                _style_button_from_theme(ok, win)
 
                 def _ok(sender, e):
                     if multiselect:
-                        # Keep labels to map back to original items
                         result["selm"] = [lb.Items[i] for i in range(lb.Items.Count)
                                           if lb.SelectedItems.Contains(lb.Items[i])]
                     else:
@@ -420,6 +478,8 @@ class SelectFromList(object):
                 ok.Click += _ok
 
             if cancel is not None:
+                _style_button_from_theme(cancel, win)
+
                 def _cancel(sender, e):
                     try:
                         win.DialogResult = False
@@ -432,7 +492,6 @@ class SelectFromList(object):
             if not rv:
                 return None
 
-            # Map selection labels back to original objects
             if multiselect:
                 labels = [str(x) for x in items]
                 selected = [str(x) for x in result["selm"]]
