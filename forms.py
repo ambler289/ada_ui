@@ -48,11 +48,11 @@ def _parse(xaml_text: str):
 
 
 def _merge_theme(win):
-    """Load theme resources in the correct order."""
+    """Load theme resources."""
     if not ENABLE_THEME:
         return
     
-    # Load Theme.xaml first to establish base resources
+    # Load the combined Theme.xaml file
     theme_path = HERE / "Theme.xaml"
     if theme_path.exists():
         try:
@@ -61,16 +61,6 @@ def _merge_theme(win):
                 win.Resources.MergedDictionaries.Add(theme_dict)
         except Exception as e:
             print(f"Failed to load Theme.xaml: {e}")
-    
-    # Then load Controls.xaml which may reference theme resources
-    controls_path = HERE / "Controls.xaml"
-    if controls_path.exists():
-        try:
-            controls_dict = _parse(_read(controls_path))
-            if isinstance(controls_dict, ResourceDictionary):
-                win.Resources.MergedDictionaries.Add(controls_dict)
-        except Exception as e:
-            print(f"Failed to load Controls.xaml: {e}")
 
 
 def _load_win(xaml_name: str):
@@ -91,6 +81,13 @@ def _load_win(xaml_name: str):
 
     # Apply theming before setting other properties
     _merge_theme(win)
+
+    # Set window properties programmatically
+    try:
+        from System.Windows import WindowStartupLocation
+        win.WindowStartupLocation = WindowStartupLocation.CenterOwner
+    except Exception:
+        pass
 
     # Visibility guard: if AllowsTransparency is True and background is transparent/None,
     # the window can be effectively invisible. Make it visible.
