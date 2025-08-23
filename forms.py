@@ -31,8 +31,11 @@ def _read(p: Path) -> str:
 def _parse(xaml_text: str):
     return XamlReader.Parse(StringReader(xaml_text).ReadToEnd())
 
-def _merge_theme(win: Window):
-    for name in ("Controls.xaml", "Theme.xaml"):
+# --- replace in lib/ada_ui/forms.py ---
+
+def _merge_theme(win):
+    # Theme first (defines tokens like Ada.Radius), then Controls (consumes them)
+    for name in ("Theme.xaml", "Controls.xaml"):
         p = HERE / name
         if not p.exists():
             continue
@@ -55,10 +58,8 @@ def _load_win(xaml_name: str):
 
     _merge_theme(win)
 
-    # >>> visibility guard must run BEFORE the return <<<
+    # Visibility guard (prevents invisible transparent windows when theme not merged)
     try:
-        # If XAML sets AllowsTransparency=True and Background is Transparent/None,
-        # the window can be invisible. Make it visible.
         if hasattr(win, "AllowsTransparency") and bool(win.AllowsTransparency):
             from System.Windows.Media import Brushes
             bg = win.Background
@@ -67,12 +68,10 @@ def _load_win(xaml_name: str):
                 win.Background = Brushes.White
     except Exception:
         pass
-    # <<< end guard >>>
 
     win.SizeToContent = 1  # WidthAndHeight
     win.Topmost = True
     return win, scope
-
 
 def _find(scope, name: str):
     try:
