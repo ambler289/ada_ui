@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ada_ui.forms — XAML-backed dialogs for ADa
+ada_ui.forms â€" XAML-backed dialogs for ADa
 
 Features
 - NameScope-aware part resolution (FindName + logical tree fallback)
@@ -35,6 +35,8 @@ __ada_ui_forms_marker__ = "ADa_UI_forms_v1.3"
 
 HERE = Path(__file__).resolve().parent
 
+# Enable theming
+ENABLE_THEME = True
 
 # -------------------- helpers --------------------
 def _read(p: Path) -> str:
@@ -44,21 +46,32 @@ def _read(p: Path) -> str:
 def _parse(xaml_text: str):
     return XamlReader.Parse(StringReader(xaml_text).ReadToEnd())
 
-# at the top, add a switch
-ENABLE_THEME = False
 
 def _merge_theme(win):
+    """Load theme resources in the correct order."""
     if not ENABLE_THEME:
         return
-    for name in ("Theme.xaml", "Controls.xaml"):  # Theme FIRST, then Controls
-        p = HERE / name
-        if p.exists():
-            try:
-                parsed = _parse(_read(p))
-                if isinstance(parsed, ResourceDictionary):
-                    win.Resources.MergedDictionaries.Add(parsed)
-            except Exception:
-                pass
+    
+    # Load Theme.xaml first to establish base resources
+    theme_path = HERE / "Theme.xaml"
+    if theme_path.exists():
+        try:
+            theme_dict = _parse(_read(theme_path))
+            if isinstance(theme_dict, ResourceDictionary):
+                win.Resources.MergedDictionaries.Add(theme_dict)
+        except Exception as e:
+            print(f"Failed to load Theme.xaml: {e}")
+    
+    # Then load Controls.xaml which may reference theme resources
+    controls_path = HERE / "Controls.xaml"
+    if controls_path.exists():
+        try:
+            controls_dict = _parse(_read(controls_path))
+            if isinstance(controls_dict, ResourceDictionary):
+                win.Resources.MergedDictionaries.Add(controls_dict)
+        except Exception as e:
+            print(f"Failed to load Controls.xaml: {e}")
+
 
 def _load_win(xaml_name: str):
     """Load a XAML file into a Window and attach theme + safety guard."""
@@ -76,6 +89,7 @@ def _load_win(xaml_name: str):
         win = w
         scope = root
 
+    # Apply theming before setting other properties
     _merge_theme(win)
 
     # Visibility guard: if AllowsTransparency is True and background is transparent/None,
@@ -139,7 +153,7 @@ def _host_add_child(host, child):
             return True
         except Exception:
             pass
-    # Case 3: ContentControls (ContentPresenter-like) — create a StackPanel
+    # Case 3: ContentControls (ContentPresenter-like) â€" create a StackPanel
     if hasattr(host, "Content"):
         try:
             sp = StackPanel()
