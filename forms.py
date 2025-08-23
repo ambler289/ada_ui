@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-ada_ui.forms — NameScope-aware + robust theming
-Fixes:
-- Always parses Controls.xaml & Theme.xaml as ResourceDictionaries (no Source URI)
-- ButtonBox uses TitleText for the message (ButtonBox.xaml has no text_message)
-- Guaranteed creation of buttons into panel_buttons
+ada_ui.forms — NameScope-aware + robust host handling for ButtonBox
+This build focuses on making big_buttons() work regardless of the host control type:
+- If host has Children -> use .Children.Add(button) (e.g., StackPanel, Grid, UniformGrid as Panel)
+- Else if host has Items   -> use .Items.Add(button)   (e.g., ItemsControl, ListBox)
+- Else if host has Content -> create a StackPanel and assign to .Content, then add
+Also parses Controls.xaml & Theme.xaml directly as ResourceDictionaries.
 """
 from __future__ import annotations
 from pathlib import Path
@@ -21,7 +22,7 @@ from System.Windows.Markup import XamlReader
 from System.Windows.Controls import Button, StackPanel, TextBlock, TextBox, ListBox
 from System.Windows import Controls
 
-__ada_ui_forms_marker__ = "FindName_FIX_2"
+__ada_ui_forms_marker__ = "FindName_FIX_3"
 
 HERE = Path(__file__).resolve().parent
 
@@ -33,7 +34,6 @@ def _parse(xaml_text: str):
     return XamlReader.Parse(StringReader(xaml_text).ReadToEnd())
 
 def _merge_theme(win: Window):
-    """Parse Controls.xaml + Theme.xaml directly and add as ResourceDictionaries."""
     for name in ("Controls.xaml", "Theme.xaml"):
         p = HERE / name
         if not p.exists():
@@ -43,30 +43,23 @@ def _merge_theme(win: Window):
             if isinstance(parsed, ResourceDictionary):
                 win.Resources.MergedDictionaries.Add(parsed)
         except Exception:
-            # swallow theme load issues; UI will still work unthemed
             pass
 
 def _load_win(xaml_name: str):
-    """Return (win, scope) where scope hosts the NameScope (root for FindName)."""
     xaml_path = HERE / xaml_name
     if not xaml_path.exists():
         raise IOError("Missing XAML: {}".format(xaml_path))
     root = _parse(_read(xaml_path))
     if isinstance(root, Window):
-        win = root
-        scope = win
+        win = root; scope = win
     else:
-        w = Window()
-        w.Content = root
-        win = w
-        scope = root
+        w = Window(); w.Content = root; win = w; scope = root
     _merge_theme(win)
     win.SizeToContent = 1  # WidthAndHeight
     win.Topmost = True
     return win, scope
 
 def _find(scope, name: str):
-    """Resolve element by x:Name using FindName; small logical fallback search if needed."""
     try:
         if hasattr(scope, "FindName"):
             el = scope.FindName(name)
@@ -196,20 +189,45 @@ def input_text(prompt="Enter text", title="Input"):
     except Exception:
         return None
 
+def _host_add_child(host, child):
+    """Add child to host regardless of specific control API."""
+    # Case 1: Panels (StackPanel, Grid as Panel, UniformGrid, DockPanel) -> Children
+    if hasattr(host, "Children"):
+        try:
+            host.Children.Add(child)
+            return True
+        except Exception:
+            pass
+    # Case 2: ItemsControl -> Items
+    if hasattr(host, "Items"):
+        try:
+            host.Items.Add(child)
+            return True
+        except Exception:
+            pass
+    # Case 3: ContentControl -> Content
+    if hasattr(host, "Content"):
+        try:
+            sp = StackPanel()
+            sp.Children.Add(child)
+            host.Content = sp
+            return True
+        except Exception:
+            pass
+    return False
+
 def big_buttons(title, items, message=None, cancel=True):
-    """Use ButtonBox.xaml; add a button per label into panel_buttons.
-       NOTE: ButtonBox uses TitleText for the description (no text_message in this XAML)."""
+    """Use ButtonBox.xaml; robustly add a button per label into panel_buttons."""
     try:
         win, scope = _load_win("ButtonBox.xaml")
         try: win.Title = title
         except Exception: pass
 
-        # ButtonBox has TitleText, but no text_message; use TitleText for the optional description.
+        # ButtonBox: We have TitleText (diagnostic showed it's present)
         title_tb = _find(scope, "TitleText")
         if message and title_tb is not None:
-            # Append message below existing title, if any
             try:
-                existing = String(title_tb.Text) if getattr(title_tb, "Text", None) else ""
+                existing = getattr(title_tb, "Text", "") or ""
                 sep = "\n" if existing else ""
                 title_tb.Text = String(str(existing) + sep + str(message))
             except Exception:
@@ -234,7 +252,7 @@ def big_buttons(title, items, message=None, cancel=True):
                 b.MinWidth = 220
                 b.Height = 36
                 b.Click += _make(label)
-                host.Children.Add(b)
+                _host_add_child(host, b)
 
         cancel_btn = _find(scope, "button_cancel")
         ok_btn     = _find(scope, "button_ok")
