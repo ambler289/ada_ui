@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-ada_ui.forms — NameScope-aware XAML wrapper
-Exposes: alert, confirm, input_text, big_buttons, SelectFromList.show
+ada_ui.forms — NameScope-aware + robust theming
+Fixes:
+- Always parses Controls.xaml & Theme.xaml as ResourceDictionaries (no Source URI)
+- ButtonBox uses TitleText for the message (ButtonBox.xaml has no text_message)
+- Guaranteed creation of buttons into panel_buttons
 """
 from __future__ import annotations
 from pathlib import Path
@@ -11,12 +14,14 @@ clr.AddReference("PresentationFramework")
 clr.AddReference("PresentationCore")
 clr.AddReference("WindowsBase")
 
-from System import String, Uri, UriKind
+from System import String
 from System.IO import StringReader
 from System.Windows import Window, ResourceDictionary, MessageBox, MessageBoxButton, MessageBoxResult
 from System.Windows.Markup import XamlReader
 from System.Windows.Controls import Button, StackPanel, TextBlock, TextBox, ListBox
 from System.Windows import Controls
+
+__ada_ui_forms_marker__ = "FindName_FIX_2"
 
 HERE = Path(__file__).resolve().parent
 
@@ -28,22 +33,18 @@ def _parse(xaml_text: str):
     return XamlReader.Parse(StringReader(xaml_text).ReadToEnd())
 
 def _merge_theme(win: Window):
-    """Merge Controls.xaml + Theme.xaml; prefer Source URI, fallback to parsing."""
+    """Parse Controls.xaml + Theme.xaml directly and add as ResourceDictionaries."""
     for name in ("Controls.xaml", "Theme.xaml"):
-        path = HERE / name
-        if not path.exists():
+        p = HERE / name
+        if not p.exists():
             continue
         try:
-            rd = ResourceDictionary()
-            rd.Source = Uri(path.as_uri(), UriKind.Absolute)
-            win.Resources.MergedDictionaries.Add(rd)
+            parsed = _parse(_read(p))
+            if isinstance(parsed, ResourceDictionary):
+                win.Resources.MergedDictionaries.Add(parsed)
         except Exception:
-            try:
-                parsed = _parse(_read(path))
-                if isinstance(parsed, ResourceDictionary):
-                    win.Resources.MergedDictionaries.Add(parsed)
-            except Exception:
-                pass
+            # swallow theme load issues; UI will still work unthemed
+            pass
 
 def _load_win(xaml_name: str):
     """Return (win, scope) where scope hosts the NameScope (root for FindName)."""
@@ -196,17 +197,23 @@ def input_text(prompt="Enter text", title="Input"):
         return None
 
 def big_buttons(title, items, message=None, cancel=True):
-    """Use ButtonBox.xaml; add a button per label into panel_buttons."""
+    """Use ButtonBox.xaml; add a button per label into panel_buttons.
+       NOTE: ButtonBox uses TitleText for the description (no text_message in this XAML)."""
     try:
         win, scope = _load_win("ButtonBox.xaml")
         try: win.Title = title
         except Exception: pass
 
-        # Optional title/description inside the window
+        # ButtonBox has TitleText, but no text_message; use TitleText for the optional description.
         title_tb = _find(scope, "TitleText")
-        desc_tb  = _find(scope, "text_message")
-        if message and desc_tb is not None:
-            desc_tb.Text = String(str(message))
+        if message and title_tb is not None:
+            # Append message below existing title, if any
+            try:
+                existing = String(title_tb.Text) if getattr(title_tb, "Text", None) else ""
+                sep = "\n" if existing else ""
+                title_tb.Text = String(str(existing) + sep + str(message))
+            except Exception:
+                pass
 
         host = _find(scope, "panel_buttons")
         result = {"choice": None}
@@ -223,8 +230,8 @@ def big_buttons(title, items, message=None, cancel=True):
             for label in items:
                 b = Button()
                 b.Content = String(str(label))
-                b.Margin = Controls.Thickness(4)
-                b.MinWidth = 200
+                b.Margin = Controls.Thickness(6)
+                b.MinWidth = 220
                 b.Height = 36
                 b.Click += _make(label)
                 host.Children.Add(b)
