@@ -52,10 +52,27 @@ def _load_win(xaml_name: str):
         win = root; scope = win
     else:
         w = Window(); w.Content = root; win = w; scope = root
+
     _merge_theme(win)
+
+    # >>> visibility guard must run BEFORE the return <<<
+    try:
+        # If XAML sets AllowsTransparency=True and Background is Transparent/None,
+        # the window can be invisible. Make it visible.
+        if hasattr(win, "AllowsTransparency") and bool(win.AllowsTransparency):
+            from System.Windows.Media import Brushes
+            bg = win.Background
+            if bg is None or str(bg) in ("Transparent", "#00FFFFFF"):
+                win.AllowsTransparency = False
+                win.Background = Brushes.White
+    except Exception:
+        pass
+    # <<< end guard >>>
+
     win.SizeToContent = 1  # WidthAndHeight
     win.Topmost = True
     return win, scope
+
 
 def _find(scope, name: str):
     try:
