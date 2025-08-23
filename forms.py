@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 ada_ui.forms — NameScope-aware + robust host handling for ButtonBox
-This build focuses on making big_buttons() work regardless of the host control type:
-- If host has Children -> use .Children.Add(button) (e.g., StackPanel, Grid, UniformGrid as Panel)
-- Else if host has Items   -> use .Items.Add(button)   (e.g., ItemsControl, ListBox)
-- Else if host has Content -> create a StackPanel and assign to .Content, then add
-Also parses Controls.xaml & Theme.xaml directly as ResourceDictionaries.
+- Resolves XAML parts via FindName (NameScope-aware)
+- Adds buttons to panel host via Children/Items/Content fallback
+- Parses Controls.xaml & Theme.xaml as ResourceDictionaries and merges
 """
 from __future__ import annotations
 from pathlib import Path
@@ -82,6 +80,27 @@ def _find(scope, name: str):
     except Exception:
         pass
     return None
+
+def _host_add_child(host, child):
+    # Panels -> Children
+    if hasattr(host, "Children"):
+        try:
+            host.Children.Add(child); return True
+        except Exception: pass
+    # ItemsControls -> Items
+    if hasattr(host, "Items"):
+        try:
+            host.Items.Add(child); return True
+        except Exception: pass
+    # ContentControls -> Content
+    if hasattr(host, "Content"):
+        try:
+            sp = StackPanel()
+            sp.Children.Add(child)
+            host.Content = sp
+            return True
+        except Exception: pass
+    return False
 
 # -------------------- public API --------------------
 def alert(message, title="Message"):
@@ -189,41 +208,13 @@ def input_text(prompt="Enter text", title="Input"):
     except Exception:
         return None
 
-def _host_add_child(host, child):
-    """Add child to host regardless of specific control API."""
-    # Case 1: Panels (StackPanel, Grid as Panel, UniformGrid, DockPanel) -> Children
-    if hasattr(host, "Children"):
-        try:
-            host.Children.Add(child)
-            return True
-        except Exception:
-            pass
-    # Case 2: ItemsControl -> Items
-    if hasattr(host, "Items"):
-        try:
-            host.Items.Add(child)
-            return True
-        except Exception:
-            pass
-    # Case 3: ContentControl -> Content
-    if hasattr(host, "Content"):
-        try:
-            sp = StackPanel()
-            sp.Children.Add(child)
-            host.Content = sp
-            return True
-        except Exception:
-            pass
-    return False
-
 def big_buttons(title, items, message=None, cancel=True):
-    """Use ButtonBox.xaml; robustly add a button per label into panel_buttons."""
+    """Create large option buttons from ButtonBox.xaml"""
     try:
         win, scope = _load_win("ButtonBox.xaml")
         try: win.Title = title
         except Exception: pass
 
-        # ButtonBox: We have TitleText (diagnostic showed it's present)
         title_tb = _find(scope, "TitleText")
         if message and title_tb is not None:
             try:

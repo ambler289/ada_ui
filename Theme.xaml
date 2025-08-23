@@ -1,38 +1,19 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-  <!-- Brand tokens (from ada_brandforms_v6) -->
-  <Color x:Key="Ada.Blue">#FF5C7CFA</Color>
-  <Color x:Key="Ada.Pink">#FFF759C0</Color>
-  <Color x:Key="Ada.BgDark">#FF1F232B</Color>
-  <Color x:Key="Ada.TextLight">#FFE8EAED</Color>
+  <!-- Core ADa tokens -->
+  <Color x:Key="Ada.Primary">#FF0A84FF</Color>
+  <SolidColorBrush x:Key="Ada.PrimaryBrush" Color="{StaticResource Ada.Primary}" />
+  <SolidColorBrush x:Key="Ada.PrimaryBrush.Fg" Color="White" />
+  <CornerRadius x:Key="Ada.Radius">12,12,12,12</CornerRadius>
+  <Thickness x:Key="Ada.Padding">12</Thickness>
 
-  <SolidColorBrush x:Key="Ada.Brush.Blue"     Color="{StaticResource Ada.Blue}"/>
-  <SolidColorBrush x:Key="Ada.Brush.Pink"     Color="{StaticResource Ada.Pink}"/>
-  <SolidColorBrush x:Key="Ada.Brush.Window"   Color="{StaticResource Ada.BgDark}"/>
-  <SolidColorBrush x:Key="Ada.Brush.Surface"  Color="#1B1F27"/>
-  <SolidColorBrush x:Key="Ada.Brush.Border"   Color="#2B2F39"/>
-  <SolidColorBrush x:Key="Ada.Brush.Text"     Color="{StaticResource Ada.TextLight}"/>
-  <SolidColorBrush x:Key="Ada.Brush.TextDim"  Color="#FFBFC6D3"/>
-
-  <LinearGradientBrush x:Key="Ada.Brush.HeaderGrad" StartPoint="0,0" EndPoint="1,0">
-    <GradientStop Color="{StaticResource Ada.Blue}" Offset="0.0"/>
-    <GradientStop Color="{StaticResource Ada.Pink}" Offset="1.0"/>
-  </LinearGradientBrush>
-
-  <x:Double   x:Key="Ada.Radius">12</x:Double>
-  <Thickness  x:Key="Ada.Padding.Window">0</Thickness>
-  <Thickness  x:Key="Ada.Padding.Card">16</Thickness>
-  <x:Double   x:Key="Ada.Font.Size">13</x:Double>
-  <FontFamily x:Key="Ada.Font">Segoe UI</FontFamily>
-
-  <!-- Text styles -->
-  <Style x:Key="Ada.TitleText" TargetType="TextBlock">
-    <Setter Property="Foreground" Value="{StaticResource Ada.Brush.Text}"/>
-    <Setter Property="FontSize"   Value="20"/>
-    <Setter Property="FontWeight" Value="SemiBold"/>
+  <!-- Baseline styles -->
+  <Style TargetType="Button">
+    <Setter Property="Margin" Value="6"/>
+    <Setter Property="Padding" Value="10,6"/>
   </Style>
-  <Style x:Key="Ada.LabelText" TargetType="TextBlock">
-    <Setter Property="Foreground" Value="{StaticResource Ada.Brush.TextDim}"/>
-    <Setter Property="FontSize"   Value="{StaticResource Ada.Font.Size}"/>
+
+  <Style TargetType="Window">
+    <Setter Property="WindowStartupLocation" Value="CenterOwner"/>
   </Style>
 </ResourceDictionary>
