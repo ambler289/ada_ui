@@ -44,21 +44,21 @@ def _read(p: Path) -> str:
 def _parse(xaml_text: str):
     return XamlReader.Parse(StringReader(xaml_text).ReadToEnd())
 
+# at the top, add a switch
+ENABLE_THEME = False
 
-def _merge_theme(win: Window):
-    """Merge dictionaries in a dependency-safe order: Theme first, then Controls."""
-    for name in ("Theme.xaml", "Controls.xaml"):
+def _merge_theme(win):
+    if not ENABLE_THEME:
+        return
+    for name in ("Theme.xaml", "Controls.xaml"):  # Theme FIRST, then Controls
         p = HERE / name
-        if not p.exists():
-            continue
-        try:
-            parsed = _parse(_read(p))
-            if isinstance(parsed, ResourceDictionary):
-                win.Resources.MergedDictionaries.Add(parsed)
-        except Exception:
-            # Swallow theme errors; UI must still function
-            pass
-
+        if p.exists():
+            try:
+                parsed = _parse(_read(p))
+                if isinstance(parsed, ResourceDictionary):
+                    win.Resources.MergedDictionaries.Add(parsed)
+            except Exception:
+                pass
 
 def _load_win(xaml_name: str):
     """Load a XAML file into a Window and attach theme + safety guard."""
