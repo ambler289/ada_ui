@@ -5,23 +5,61 @@ from pathlib import Path
 
 IS_CPYTHON = (sys.implementation.name == "cpython")
 
-def _add(p):
-    if p and p.is_dir():
-        site.addsitedir(str(p))
+# --- ada_bootstrap: replace _add + ensure_paths + call ---
+
+from pathlib import Path
+import os, sys
+
+def _add_first(p):
+    """Insert path at the FRONT of sys.path (ahead of user site-packages)."""
+    if not p:
+        return
+    p = Path(p)
+    if p.is_dir():
+        s = str(p)
+        if s not in sys.path:
+            sys.path.insert(0, s)
 
 def ensure_paths():
+    """
+    Make third-party libs discoverable, preferring:
+      1) ADA_THIRDPARTY share (if set) -> common + win-amd64-cpXY
+      2) This extension's lib/thirdparty -> common + win-amd64-cpXY
+      3) Sibling ADa extensions under %APPDATA% / %LOCALAPPDATA%
+    """
+    # cp tag: cp312, cp311, etc.
+    tag  = "cp{}{}".format(sys.version_info.major, sys.version_info.minor)
+    plat = "win-amd64-" + tag
+
+    # 1) Central override
+    root = os.getenv("ADA_THIRDPARTY")
+    if root:
+        _add_first(Path(root) / "common")
+        _add_first(Path(root) / plat)
+
+    # 2) This extension root (walk up to *.extension)
     ext = Path(__file__).resolve()
     while ext and not ext.name.endswith(".extension"):
         ext = ext.parent
-    for p in (ext / "lib" if ext else None, (ext / "lib" / "thirdparty") if ext else None):
-        _add(p)
+    if ext:
+        _add_first(ext / "lib")
+        tp = ext / "lib" / "thirdparty"
+        _add_first(tp / "common")
+        _add_first(tp / plat)
+
+    # 3) Sibling extensions under roaming/local
     appdata      = Path(os.environ.get("APPDATA",      Path.home() / "AppData/Roaming"))
     localappdata = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData/Local"))
     for base in (appdata, localappdata):
+        exts_root = base / "pyRevit" / "Extensions"
         for extname in ("ADa-Manage.extension", "ADa-Tools.extension"):
-            for p in (base / "pyRevit" / "Extensions" / extname / "lib",
-                      base / "pyRevit" / "Extensions" / extname / "lib" / "thirdparty"):
-                _add(p)
+            er = exts_root / extname
+            _add_first(er / "lib")
+            tp = er / "lib" / "thirdparty"
+            _add_first(tp / "common")
+            _add_first(tp / plat)
+
+# call once on import
 ensure_paths()
 
 # ---- WinForms base (works on CPython via pythonnet) ----
