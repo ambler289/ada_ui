@@ -3,8 +3,9 @@
 ADa bootstrap — Option 2 (prefer Tools over Manage)
 ---------------------------------------------------
 Sets import and DLL search order so NumPy 2.x + Shapely 2.x load reliably under
-pyRevit CPython (Revit 2024+). Tools > Manage is enforced, and any pre-existing
-thirdparty paths are removed before ours are inserted.
+pyRevit CPython (Revit 2024+). Tools > Manage is enforced, central shared cache
+(C:/Revit/pyrevit_pkgs/cp312) is added, and any pre-existing thirdparty paths are
+removed before ours are inserted.
 """
 
 from __future__ import annotations
@@ -66,6 +67,9 @@ def ensure_paths() -> None:
     manage_tp   = manage_lib / "thirdparty"
     tools_base  = tools_tp   / plat             # e.g. ...\thirdparty\win-amd64-cp312
 
+    # >>> Add central shared cache (NAS/local sync)
+    shared_base = Path(r"C:\Revit\pyrevit_pkgs\cp312")
+
     # 0) Keep stray site-packages out of the way (only if not set)
     os.environ.setdefault("PYTHONNOUSERSITE", "1")
 
@@ -80,11 +84,11 @@ def ensure_paths() -> None:
     roots_to_strip = [
         tools_tp, tools_tp / "common", tools_base,
         manage_tp, manage_tp / "common", manage_tp / plat,
+        shared_base
     ]
     sys.path[:] = [p for p in sys.path if not _starts_with_any(p, roots_to_strip)]
 
-    # 2) Insert **Tools first**, then **Manage**
-    #    (common first, then platform, then lib root)
+    # 2) Insert **Tools first**, then **Manage**, then shared cache
     _add_first(tools_tp / "common")
     _add_first(tools_base)
     _add_first(tools_lib)
@@ -93,14 +97,15 @@ def ensure_paths() -> None:
     _add_first(manage_tp / plat)
     _add_first(manage_lib)
 
-    # 3) Add DLL directories for CPython 3.12+
-    #    NumPy 2.x: numpy\_core; Shapely 2.x: shapely\.libs
-    _add_dll_dir(tools_base)
-    _add_dll_dir(tools_base / r"numpy\_core")
-    _add_dll_dir(tools_base / r"shapely\.libs")
+    _add_first(shared_base)
 
-    # 4) Log a concise snapshot for support
-    _log_header("ADa bootstrap (Tools > Manage)")
+    # 3) Add DLL directories (NumPy + Shapely)
+    _add_dll_dir(shared_base)
+    _add_dll_dir(shared_base / r"numpy\_core")
+    _add_dll_dir(shared_base / r"shapely\.libs")
+
+    # 4) Log snapshot
+    _log_header("ADa bootstrap (Tools > Manage > Shared)")
     _log_write([
         "Python: {} ({})".format(platform.python_version(), platform.architecture()[0]),
         "Exec  : {}".format(sys.executable),
@@ -108,15 +113,10 @@ def ensure_paths() -> None:
         "Tools lib      : {}".format(tools_lib),
         "Manage lib     : {}".format(manage_lib),
         "Thirdparty base: {}".format(tools_base),
+        "Shared base    : {}".format(shared_base),
         "",
         "[sys.path first 20]",
         *sys.path[:20],
-        "",
-        "[Env]",
-        "ADA_UI_DIR         = {}".format(os.environ.get("ADA_UI_DIR")),
-        "ADA_THIRDPARTY     = {}".format(os.environ.get("ADA_THIRDPARTY")),
-        "ADA_THIRDPARTY_DIR = {}".format(os.environ.get("ADA_THIRDPARTY_DIR")),
-        "PYTHONNOUSERSITE   = {}".format(os.environ.get("PYTHONNOUSERSITE")),
     ])
 
 # Run once when imported
