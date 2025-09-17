@@ -99,13 +99,20 @@ def ensure_paths() -> None:
 
     _add_first(shared_base)
 
+    # 2b) Honor ADA_CORE_DIR environment variable if set
+    ada_core_dir = os.environ.get("ADA_CORE_DIR")
+    if ada_core_dir:
+        p = Path(ada_core_dir)
+        if p.is_dir():
+            _add_first(p)
+
     # 3) Add DLL directories (NumPy + Shapely)
     _add_dll_dir(shared_base)
     _add_dll_dir(shared_base / r"numpy\_core")
     _add_dll_dir(shared_base / r"shapely\.libs")
 
     # 4) Log snapshot
-    _log_header("ADa bootstrap (Tools > Manage > Shared)")
+    _log_header("ADa bootstrap (Tools > Manage > Shared + ADA_CORE_DIR)")
     _log_write([
         "Python: {} ({})".format(platform.python_version(), platform.architecture()[0]),
         "Exec  : {}".format(sys.executable),
@@ -114,6 +121,7 @@ def ensure_paths() -> None:
         "Manage lib     : {}".format(manage_lib),
         "Thirdparty base: {}".format(tools_base),
         "Shared base    : {}".format(shared_base),
+        "ADA_CORE_DIR   : {}".format(ada_core_dir or "<not set>"),
         "",
         "[sys.path first 20]",
         *sys.path[:20],
