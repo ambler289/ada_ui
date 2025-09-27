@@ -83,6 +83,8 @@ def choose(options: Iterable, title: str = "Select", message: str = "", default:
         # If the lib exposes a BigButtons helper, use it
         if hasattr(ui6, "big_buttons"):
             rv = ui6.big_buttons(title=title, options=opts, message=str(message))
+            if rv is None:     # user hit X, stop here (don’t fall back)
+                return None
             return rv if rv in opts else default
     except Exception:
         pass
@@ -217,8 +219,12 @@ def choose_multi(options: Iterable, title: str = "Select", message: str = "", in
         import ada_brandforms_v6 as ui6  # type: ignore
         if hasattr(ui6, "big_buttons_multi"):
             rv = ui6.big_buttons_multi(title=title, options=opts, message=str(message), include_all=include_all)
-            if rv == "__ALL__": return list(opts)
-            if isinstance(rv, (list, tuple)): return [x for x in rv if x in opts]
+            if rv is None:     # user hit X, stop here (don’t fall back)
+                return []
+            if rv == "__ALL__":
+                return list(opts)
+            if isinstance(rv, (list, tuple)):
+                return [x for x in rv if x in opts]
     except Exception:
         pass
 
