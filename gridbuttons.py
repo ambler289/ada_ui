@@ -15,7 +15,7 @@ def choose_grid_buttons(options, title="Choose", message="", columns=3):
     clr.AddReference("PresentationCore")
     clr.AddReference("WindowsBase")
 
-    from System.Windows import Window, WindowStartupLocation, Thickness #type: ignore
+    from System.Windows import Window, WindowStartupLocation, Thickness, SizeToContent #type: ignore
     from System.Windows.Controls import Grid, Button, TextBlock, Border #type: ignore
     from System.Windows.Media import SolidColorBrush, Color #type: ignore
     from System.Windows import CornerRadius #type: ignore
@@ -28,7 +28,7 @@ def choose_grid_buttons(options, title="Choose", message="", columns=3):
     win = Window()
     win.Title = title
     win.WindowStartupLocation = WindowStartupLocation.CenterScreen
-    win.SizeToContent = 1
+    win.SizeToContent = SizeToContent.WidthAndHeight
 
     outer = Border()
     outer.Background = SolidColorBrush(BG_DARK)
