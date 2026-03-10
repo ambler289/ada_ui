@@ -16,7 +16,8 @@ def choose_grid_buttons(options, title="Choose", message="", columns=3):
     clr.AddReference("WindowsBase")
 
     from System.Windows import (  # type: ignore
-        Window, WindowStartupLocation, Thickness, SizeToContent, HorizontalAlignment
+        Window, WindowStartupLocation, Thickness, SizeToContent,
+        HorizontalAlignment, ResizeMode
     )
     from System.Windows.Controls import (  # type: ignore
         Grid, Button, TextBlock, Border, RowDefinition, ColumnDefinition
@@ -27,7 +28,6 @@ def choose_grid_buttons(options, title="Choose", message="", columns=3):
     from System.Windows import CornerRadius  # type: ignore
 
     ADA_BLUE = Color.FromRgb(0x5C, 0x7C, 0xFA)
-    ADA_PINK = Color.FromRgb(0xF7, 0x59, 0xC0)
     BG_DARK = Color.FromRgb(0x1F, 0x23, 0x2B)
     FG_LIGHT = Color.FromRgb(0xE8, 0xEA, 0xED)
 
@@ -35,13 +35,15 @@ def choose_grid_buttons(options, title="Choose", message="", columns=3):
     if not opts:
         return None
 
+    columns = max(1, int(columns or 1))
+
     choice = {"value": None}
 
     win = Window()
-    win.Title = title
+    win.Title = str(title or "Choose")
     win.WindowStartupLocation = WindowStartupLocation.CenterScreen
     win.SizeToContent = SizeToContent.WidthAndHeight
-    win.ResizeMode = 0  # optional; harmless in most cases
+    win.ResizeMode = ResizeMode.NoResize
 
     outer = Border()
     outer.Background = SolidColorBrush(BG_DARK)
@@ -53,7 +55,7 @@ def choose_grid_buttons(options, title="Choose", message="", columns=3):
     root.RowDefinitions.Add(RowDefinition())  # button grid
     outer.Child = root
 
-    # title / message
+    # Title / message
     header = TextBlock()
     header.Text = str(message or "")
     header.Margin = Thickness(0, 0, 0, 12)
@@ -62,12 +64,12 @@ def choose_grid_buttons(options, title="Choose", message="", columns=3):
     Grid.SetRow(header, 0)
     root.Children.Add(header)
 
-    # grid of buttons
+    # Grid of buttons
     grid = Grid()
     Grid.SetRow(grid, 1)
     root.Children.Add(grid)
 
-    rows = int((len(opts) + columns - 1) / columns)
+    rows = (len(opts) + columns - 1) // columns
 
     for _ in range(rows):
         grid.RowDefinitions.Add(RowDefinition())
