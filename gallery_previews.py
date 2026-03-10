@@ -136,3 +136,15 @@ def preview_completion_summary(item):
         ),
         title=sample.get("title", "ADa Tool Summary")
     )
+
+def preview_grid_buttons(item):
+    from .gridbuttons import choose_grid_buttons
+
+    sample = item.get("sample", {})
+
+    choose_grid_buttons(
+        sample.get("items", ["Walls","Doors","Windows","Floors","Roofs","Columns"]),
+        title=sample.get("title","ADa UI Preview"),
+        message=sample.get("prompt","Choose a category"),
+        columns=3
+    )

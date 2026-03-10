@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from .gallery_previews import ( #type: ignore
+    preview_grid_buttons,
     preview_info_alert,
     preview_warning_alert,
     preview_error_alert,
@@ -156,4 +157,15 @@ DIALOG_REGISTRY = [
             "message": "Operation completed successfully.\n\nItems processed: 12\nWarnings: 0\nErrors: 0",
         },
     },
+    {
+        "name": "Grid Button Chooser",
+        "category": "Buttons",
+        "description": "Compact grid of selectable buttons",
+        "preview": preview_grid_buttons,
+        "sample": {
+            "title": "ADa UI Preview",
+            "prompt": "Choose a category",
+            "items": ["Walls","Doors","Windows","Floors","Roofs","Columns"]
+        },
+    },    
 ]
