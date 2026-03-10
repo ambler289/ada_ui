@@ -110,7 +110,7 @@ def choose(
         )
         from System.Windows.Controls import ( #type: ignore
             Grid, RowDefinition, ColumnDefinition, TextBlock,
-            Button, Border, StackPanel, ScrollViewer
+            Button, Border, StackPanel
         )
         from System.Windows.Media import ( #type: ignore
             SolidColorBrush, LinearGradientBrush,
@@ -212,11 +212,8 @@ def choose(
         Grid.SetRow(body, 1)
         root.Children.Add(body)
 
-        sc = ScrollViewer()
-        body.Child = sc
-
         pnl = StackPanel()
-        sc.Content = pnl
+        body.Child = pnl
 
         if message:
             txt = TextBlock()
