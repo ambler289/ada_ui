@@ -10,18 +10,30 @@ def choose_grid_buttons(options, title="Choose", message="", columns=3):
     returns : selected label or None
     """
 
-    import clr #type: ignore
+    import clr  # type: ignore
     clr.AddReference("PresentationFramework")
     clr.AddReference("PresentationCore")
     clr.AddReference("WindowsBase")
 
-    from System.Windows import Window, WindowStartupLocation, Thickness, SizeToContent #type: ignore
-    from System.Windows.Controls import Grid, Button, TextBlock, Border #type: ignore
-    from System.Windows.Media import SolidColorBrush, Color #type: ignore
-    from System.Windows import CornerRadius #type: ignore
+    from System.Windows import (  # type: ignore
+        Window, WindowStartupLocation, Thickness, SizeToContent, HorizontalAlignment
+    )
+    from System.Windows.Controls import (  # type: ignore
+        Grid, Button, TextBlock, Border, RowDefinition, ColumnDefinition
+    )
+    from System.Windows.Media import (  # type: ignore
+        SolidColorBrush, Color
+    )
+    from System.Windows import CornerRadius  # type: ignore
 
     ADA_BLUE = Color.FromRgb(0x5C, 0x7C, 0xFA)
+    ADA_PINK = Color.FromRgb(0xF7, 0x59, 0xC0)
     BG_DARK = Color.FromRgb(0x1F, 0x23, 0x2B)
+    FG_LIGHT = Color.FromRgb(0xE8, 0xEA, 0xED)
+
+    opts = [str(x) for x in (options or [])]
+    if not opts:
+        return None
 
     choice = {"value": None}
 
@@ -29,6 +41,7 @@ def choose_grid_buttons(options, title="Choose", message="", columns=3):
     win.Title = title
     win.WindowStartupLocation = WindowStartupLocation.CenterScreen
     win.SizeToContent = SizeToContent.WidthAndHeight
+    win.ResizeMode = 0  # optional; harmless in most cases
 
     outer = Border()
     outer.Background = SolidColorBrush(BG_DARK)
@@ -36,30 +49,42 @@ def choose_grid_buttons(options, title="Choose", message="", columns=3):
     outer.Padding = Thickness(20)
 
     root = Grid()
+    root.RowDefinitions.Add(RowDefinition())  # header/message
+    root.RowDefinitions.Add(RowDefinition())  # button grid
     outer.Child = root
 
-    # title
+    # title / message
     header = TextBlock()
-    header.Text = message
-    header.Margin = Thickness(0,0,0,10)
+    header.Text = str(message or "")
+    header.Margin = Thickness(0, 0, 0, 12)
+    header.Foreground = SolidColorBrush(FG_LIGHT)
+    header.FontSize = 16
+    Grid.SetRow(header, 0)
     root.Children.Add(header)
 
+    # grid of buttons
     grid = Grid()
+    Grid.SetRow(grid, 1)
     root.Children.Add(grid)
 
-    rows = int((len(options) + columns - 1) / columns)
+    rows = int((len(opts) + columns - 1) / columns)
 
-    for r in range(rows):
-        grid.RowDefinitions.Add(Grid.RowDefinition())
+    for _ in range(rows):
+        grid.RowDefinitions.Add(RowDefinition())
 
-    for c in range(columns):
-        grid.ColumnDefinitions.Add(Grid.ColumnDefinition())
+    for _ in range(columns):
+        grid.ColumnDefinitions.Add(ColumnDefinition())
 
     def make_btn(label):
         b = Button()
         b.Content = label
-        b.Margin = Thickness(4)
+        b.Margin = Thickness(6)
+        b.MinWidth = 120
+        b.Height = 40
         b.Background = SolidColorBrush(ADA_BLUE)
+        b.Foreground = SolidColorBrush(Color.FromRgb(255, 255, 255))
+        b.BorderThickness = Thickness(0)
+        b.HorizontalAlignment = HorizontalAlignment.Stretch
 
         def click(sender, args):
             choice["value"] = label
@@ -68,14 +93,13 @@ def choose_grid_buttons(options, title="Choose", message="", columns=3):
         b.Click += click
         return b
 
-    for i, label in enumerate(options):
+    for i, label in enumerate(opts):
         r = i // columns
         c = i % columns
 
         btn = make_btn(label)
         Grid.SetRow(btn, r)
         Grid.SetColumn(btn, c)
-
         grid.Children.Add(btn)
 
     win.Content = outer
