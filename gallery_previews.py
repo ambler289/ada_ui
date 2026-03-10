@@ -78,3 +78,61 @@ def preview_big_buttons_multi(item):
         title=sample.get("title", "ADa UI Preview"),
         message=sample.get("prompt", "Choose one or more options")
     )
+
+
+def preview_warning_alert(item):
+    from .alerts import show_warning
+    sample = item.get("sample", {})
+    show_warning(
+        sample.get("message", "This action may modify elements in the model."),
+        title=sample.get("title", "ADa Warning")
+    )
+
+
+def preview_error_alert(item):
+    from .alerts import show_error
+    sample = item.get("sample", {})
+    show_error(
+        sample.get("message", "The operation could not be completed."),
+        title=sample.get("title", "ADa Error")
+    )
+
+
+def preview_small_buttons(item):
+    from .alerts import show_buttons  # small button chooser
+    sample = item.get("sample", {})
+
+    show_buttons(
+        sample.get("buttons", ["Option A", "Option B", "Cancel"]),
+        title=sample.get("title", "ADa UI Preview"),
+        message=sample.get("message", "Choose an option")
+    )
+
+
+def preview_next_action(item):
+    from .alerts import show_buttons
+    sample = item.get("sample", {})
+
+    while True:
+
+        result = show_buttons(
+            sample.get("buttons", ["Run Again", "Change Mode", "Finish"]),
+            title=sample.get("title", "Next Action"),
+            message=sample.get("message", "Select what you would like to do next.")
+        )
+
+        if result == "Finish" or not result:
+            break
+
+
+def preview_completion_summary(item):
+    from .alerts import show_info
+    sample = item.get("sample", {})
+
+    show_info(
+        sample.get(
+            "message",
+            "Operation completed successfully.\n\nItems processed: 12\nWarnings: 0\nErrors: 0"
+        ),
+        title=sample.get("title", "ADa Tool Summary")
+    )

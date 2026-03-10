@@ -25,8 +25,13 @@ def show_success(message, title="Success"):
     return show_info(message, title=title)
 
 
+def show_error(message, title="Error"):
+    return show_info(message, title=title)
+
+
 def ask_yes_no(message, title="Confirm"):
     f = _get_forms_obj()
+
     if hasattr(f, "ask_yes_no"):
         return bool(f.ask_yes_no(str(message), title=str(title)))
 
@@ -36,3 +41,20 @@ def ask_yes_no(message, title="Confirm"):
         return result == "Yes"
 
     return False
+
+
+def show_buttons(buttons, title="Choose", message="Select an option"):
+    """
+    Small button chooser dialog.
+    Returns the clicked button label.
+    """
+    f = _get_forms_obj()
+
+    if hasattr(f, "alert"):
+        return f.alert(
+            str(message),
+            title=str(title),
+            buttons=tuple(buttons)
+        )
+
+    return None
