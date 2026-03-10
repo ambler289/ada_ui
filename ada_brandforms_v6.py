@@ -303,19 +303,26 @@ def select_from_list(
     filter_tb.Margin = Thickness(0, 0, 0, 8)
     container.Children.Add(filter_tb)
 
-    # Scrollable list region
-    list_scroller = ScrollViewer()
-    list_scroller.Height = 320
-    list_scroller.VerticalScrollBarVisibility = getattr(ScrollBarVisibility, "Auto")
-    list_scroller.HorizontalScrollBarVisibility = getattr(ScrollBarVisibility, "Disabled")
-    container.Children.Add(list_scroller)
+    # List region: only use a scroller when item count is large
+    use_scroll = len(items or []) > 8
 
-    # List box
     lb = ListBox()
     lb.SelectionMode = SelectionMode.Multiple if multiselect else SelectionMode.Single
     lb.BorderThickness = Thickness(0)
     lb.MinWidth = 560
-    list_scroller.Content = lb
+
+    if use_scroll:
+        list_scroller = ScrollViewer()
+        list_scroller.Height = 320
+        list_scroller.VerticalScrollBarVisibility = getattr(ScrollBarVisibility, "Auto")
+        list_scroller.HorizontalScrollBarVisibility = getattr(ScrollBarVisibility, "Disabled")
+        list_scroller.Content = lb
+        container.Children.Add(list_scroller)
+    else:
+        # let the list size naturally for shorter sets
+        lb.MinHeight = 120
+        lb.MaxHeight = 260
+        container.Children.Add(lb)
 
     def _display(o):
         if to_str:
