@@ -3,7 +3,7 @@
 # Public API: alert(msg, title="..."); ask_yes_no(msg, title="..."); input_box(title, label, default_text="")
 __ada_forms_version__ = "v6-rounded-2025-08-18"
 
-import clr
+import clr # type: ignore
 clr.AddReference("PresentationCore")
 clr.AddReference("PresentationFramework")
 clr.AddReference("WindowsBase")
@@ -14,8 +14,8 @@ from System.Windows import (  # type: ignore
     SizeToContent, WindowStyle, ResizeMode, TextWrapping, CornerRadius
 )
 from System.Windows.Controls import (  # type: ignore
-    Grid, RowDefinition, ColumnDefinition, TextBlock, Button, Border, StackPanel, TextBox, Orientation, 
-    ListBox, ListBoxItem, ScrollViewer, SelectionMode
+    Grid, RowDefinition, ColumnDefinition, TextBlock, Button, Border, StackPanel, TextBox, Orientation,
+    ListBox, ListBoxItem, ScrollViewer, SelectionMode, ScrollBarVisibility
 )
 from System.Windows.Media import (  # type: ignore
     SolidColorBrush, LinearGradientBrush, GradientStop, GradientStopCollection,
@@ -266,8 +266,8 @@ def select_from_list(
     multiselect=False,
     ok_label="OK",
     cancel_label="Cancel",
-    name_attr=None,          # if provided, use obj.<name_attr> for display
-    to_str=None              # optional callable to format display text
+    name_attr=None,
+    to_str=None
 ):
     """
     ADa-themed list selector.
@@ -278,13 +278,11 @@ def select_from_list(
       - single-select: the selected object or None
       - multi-select:  list of selected objects (possibly empty if cancelled)
     """
-    # Build dialog with OK/Cancel footer
     dlg = _AdaDialog(title, "", [ok_label, cancel_label])
 
-    # Replace the body with our prompt + filter + list
-    outer_border = dlg.Content                                    # Border
-    root_grid = outer_border.Child                                # Grid
-    body_border = root_grid.Children[1]                           # Border (body)
+    outer_border = dlg.Content
+    root_grid = outer_border.Child
+    body_border = root_grid.Children[1]
 
     container = StackPanel()
     container.Orientation = Orientation.Vertical
@@ -305,15 +303,20 @@ def select_from_list(
     filter_tb.Margin = Thickness(0, 0, 0, 8)
     container.Children.Add(filter_tb)
 
+    # Scrollable list region
+    list_scroller = ScrollViewer()
+    list_scroller.Height = 320
+    list_scroller.VerticalScrollBarVisibility = getattr(ScrollBarVisibility, "Auto")
+    list_scroller.HorizontalScrollBarVisibility = getattr(ScrollBarVisibility, "Disabled")
+    container.Children.Add(list_scroller)
+
     # List box
     lb = ListBox()
     lb.SelectionMode = SelectionMode.Multiple if multiselect else SelectionMode.Single
-    # make it comfortably big; dialog itself sizes to content
-    lb.MinHeight = 220
-    lb.MaxHeight = 500
-    container.Children.Add(lb)
+    lb.BorderThickness = Thickness(0)
+    lb.MinWidth = 560
+    list_scroller.Content = lb
 
-    # Helpers to render + map items
     def _display(o):
         if to_str:
             try:
@@ -327,7 +330,6 @@ def select_from_list(
                 pass
         return str(o)
 
-    # backing store: (text, obj)
     full = [(_display(o), o) for o in (items or [])]
 
     def _reload(filter_text=""):
@@ -337,29 +339,25 @@ def select_from_list(
             if not ft or ft in text.lower():
                 it = ListBoxItem()
                 it.Content = text
-                # stash the original object on the item
                 it.Tag = obj
                 lb.Items.Add(it)
 
     _reload()
 
-    # filter as you type
     def _on_filter(sender, e):
         _reload(filter_tb.Text)
     filter_tb.TextChanged += _on_filter
 
-    # double-click accepts in single-select mode
     def _on_double_click(sender, e):
         if not multiselect and lb.SelectedItem is not None:
             dlg._close(ok_label)
     lb.MouseDoubleClick += _on_double_click
 
-    # Focus filter on load
     def _loaded(sender, e):
         try:
             filter_tb.Focus()
             filter_tb.SelectAll()
-        except:
+        except Exception:
             pass
     dlg.Loaded += _loaded
 
@@ -376,10 +374,9 @@ def select_from_list(
             return sel
         else:
             it = lb.SelectedItem
-            return (it.Tag if it is not None else None)
+            return it.Tag if it is not None else None
     else:
-        # cancelled/closed
-        return ([] if multiselect else None)
+        return [] if multiselect else None
 
 class _V6Shim(object):
     # Keep lowercase alert() for convenience
