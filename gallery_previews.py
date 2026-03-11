@@ -287,6 +287,19 @@ def preview_big_button_toggle_multi(item):
         title=sample.get("title", "ADa Multi Select")
     )
 
+
+def preview_searchable_checklist_picker(item):
+    from .pickers import pick_checklist
+
+    sample = item.get("sample", {})
+    return pick_checklist(
+        sample.get("items", []),
+        title=sample.get("title", "Searchable Checklist Picker"),
+        prompt=sample.get("prompt", "Search and select one or more items"),
+        multiselect=True
+    )
+
+
 def preview_start_number_picker(item):
     from .buttons import choose_action  # type: ignore
 
