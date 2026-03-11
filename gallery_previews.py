@@ -99,9 +99,8 @@ def preview_error_alert(item):
 
 
 def preview_small_buttons(item):
-    from .alerts import show_buttons  # small button chooser
+    from .alerts import show_buttons
     sample = item.get("sample", {})
-
     show_buttons(
         sample.get("buttons", ["Option A", "Option B", "Cancel"]),
         title=sample.get("title", "ADa UI Preview"),
@@ -114,7 +113,6 @@ def preview_next_action(item):
     sample = item.get("sample", {})
 
     while True:
-
         result = show_buttons(
             sample.get("buttons", ["Run Again", "Change Mode", "Finish"]),
             title=sample.get("title", "Next Action"),
@@ -137,17 +135,19 @@ def preview_completion_summary(item):
         title=sample.get("title", "ADa Tool Summary")
     )
 
+
 def preview_grid_buttons(item):
     from .gridbuttons import choose_grid_buttons
 
     sample = item.get("sample", {})
 
     choose_grid_buttons(
-        sample.get("items", ["Walls","Doors","Windows","Floors","Roofs","Columns"]),
-        title=sample.get("title","ADa UI Preview"),
-        message=sample.get("prompt","Choose a category"),
+        sample.get("items", ["Walls", "Doors", "Windows", "Floors", "Roofs", "Columns"]),
+        title=sample.get("title", "ADa UI Preview"),
+        message=sample.get("prompt", "Choose a category"),
         columns=3
     )
+
 
 def preview_bulk_parameter_setter(item):
     from .editors import bulk_parameter_editor
@@ -180,4 +180,65 @@ def preview_bulk_parameter_setter(item):
             result["value"]
         ),
         title=sample.get("title", "Bulk Parameter Setter"),
+    )
+
+    return None
+
+
+def preview_bulk_parameter_table_editor(item):
+    from .editors import bulk_parameter_table_editor
+
+    sample = item.get("sample", {})
+
+    rows = sample.get(
+        "rows",
+        [
+            {
+                "parameter": "Exterior_Sill_Show",
+                "current": "Yes",
+                "new_value": True,
+                "unit": "(tick = Yes, untick = No; dash = keep)",
+                "kind": "bool",
+            },
+            {
+                "parameter": "Exterior_Trim_Show",
+                "current": "No",
+                "new_value": False,
+                "unit": "(tick = Yes, untick = No; dash = keep)",
+                "kind": "bool",
+            },
+            {
+                "parameter": "Ext_Sill_Angle",
+                "current": "15.00",
+                "new_value": "15.00",
+                "unit": "degrees",
+                "kind": "text",
+            },
+            {
+                "parameter": "Ext_Sill_Height",
+                "current": "60",
+                "new_value": "60",
+                "unit": "mm",
+                "kind": "text",
+            },
+            {
+                "parameter": "Ext_Sill_Width",
+                "current": "25",
+                "new_value": "25",
+                "unit": "mm",
+                "kind": "text",
+            },
+            {
+                "parameter": "Frame_Setback",
+                "current": "120",
+                "new_value": "120",
+                "unit": "mm",
+                "kind": "text",
+            },
+        ],
+    )
+
+    return bulk_parameter_table_editor(
+        rows,
+        title=sample.get("title", "Edit Parameters (Bulk)")
     )

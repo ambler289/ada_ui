@@ -17,6 +17,7 @@ from .gallery_previews import ( #type: ignore
     preview_completion_summary,
     preview_grid_buttons,
     preview_bulk_parameter_setter,
+    preview_bulk_parameter_table_editor,
 )
 
 DIALOG_REGISTRY = [
@@ -189,4 +190,57 @@ DIALOG_REGISTRY = [
             "element_count": 12,
         },
     }, 
+        {
+        "name": "Bulk Parameter Table Editor",
+        "category": "Editors",
+        "description": "Large table-based bulk editor for parameter values",
+        "preview": preview_bulk_parameter_table_editor,
+        "sample": {
+            "title": "Edit Parameters (Bulk)",
+            "rows": [
+                {
+                    "parameter": "Exterior_Sill_Show",
+                    "current": "Yes",
+                    "new_value": True,
+                    "unit": "(tick = Yes, untick = No; dash = keep)",
+                    "kind": "bool",
+                },
+                {
+                    "parameter": "Exterior_Trim_Show",
+                    "current": "No",
+                    "new_value": False,
+                    "unit": "(tick = Yes, untick = No; dash = keep)",
+                    "kind": "bool",
+                },
+                {
+                    "parameter": "Ext_Sill_Angle",
+                    "current": "15.00",
+                    "new_value": "15.00",
+                    "unit": "degrees",
+                    "kind": "text",
+                },
+                {
+                    "parameter": "Ext_Sill_Height",
+                    "current": "60",
+                    "new_value": "60",
+                    "unit": "mm",
+                    "kind": "text",
+                },
+                {
+                    "parameter": "Ext_Sill_Width",
+                    "current": "25",
+                    "new_value": "25",
+                    "unit": "mm",
+                    "kind": "text",
+                },
+                {
+                    "parameter": "Frame_Setback",
+                    "current": "120",
+                    "new_value": "120",
+                    "unit": "mm",
+                    "kind": "text",
+                },
+            ],
+        },
+    },
 ]
