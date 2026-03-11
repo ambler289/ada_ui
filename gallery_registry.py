@@ -229,18 +229,6 @@ DIALOG_REGISTRY = [
         },
     },
     {
-        "name": "Big Button Toggle Multi",
-        "category": "Buttons",
-        "description": "Pattern preview for a staged multi-select workflow with All / None / Go actions.",
-        "preview": preview_big_button_toggle_multi,
-        "sample": {
-            "title": "ADa Multi Select",
-            "prompt": "Choose one or more categories",
-            "items": ["Walls", "Floors", "Roofs", "Windows", "Doors"],
-            "selected": ["Walls", "Roofs"],
-        },
-    },
-    {
         "name": "Grid Button Chooser",
         "category": "Buttons Layouts",
         "description": "Compact grid of selectable buttons",
