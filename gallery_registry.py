@@ -231,7 +231,7 @@ DIALOG_REGISTRY = [
     {
         "name": "Big Button Toggle Multi",
         "category": "Buttons",
-        "description": "Toggle-style multi-select pattern with All / Clear / Done workflow.",
+        "description": "Pattern preview for a staged multi-select workflow with All / None / Go actions.",
         "preview": preview_big_button_toggle_multi,
         "sample": {
             "title": "ADa Multi Select",

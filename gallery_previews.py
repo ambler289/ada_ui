@@ -259,13 +259,30 @@ def preview_big_button_launcher(item):
     )
 
 def preview_big_button_toggle_multi(item):
-    from .buttons import choose_actions_toggle
+    from .alerts import show_info
 
     sample = item.get("sample", {})
-    return choose_actions_toggle(
-        sample.get("items", ["Walls", "Floors", "Roofs", "Windows", "Doors"]),
-        title=sample.get("title", "ADa Multi Select"),
-        message=sample.get("prompt", "Choose one or more categories")
+    prompt = sample.get("prompt", "Choose one or more categories")
+    items = sample.get("items", ["Walls", "Floors", "Roofs", "Windows", "Doors"])
+    selected = sample.get("selected", ["Walls", "Roofs"])
+
+    lines = [
+        "Pattern preview",
+        "",
+        prompt,
+        "",
+        "Quick actions:",
+        "[All]   [None]   [Go]",
+        "",
+    ]
+
+    for item_name in items:
+        prefix = "✓ " if item_name in selected else "☐ "
+        lines.append(prefix + str(item_name))
+
+    show_info(
+        "\n".join(lines),
+        title=sample.get("title", "ADa Toggle Multi Pattern")
     )
 
 def preview_searchable_checklist_picker(item):
@@ -278,7 +295,6 @@ def preview_searchable_checklist_picker(item):
         prompt=sample.get("prompt", "Search and select one or more items"),
         multiselect=True
     )
-
 
 def preview_start_number_picker(item):
     from .buttons import choose_action  # type: ignore
