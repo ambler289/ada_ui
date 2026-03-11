@@ -258,35 +258,15 @@ def preview_big_button_launcher(item):
         message=sample.get("prompt", "Choose an action")
     )
 
-
 def preview_big_button_toggle_multi(item):
-    from .alerts import show_info
+    from .buttons import choose_actions_toggle
 
     sample = item.get("sample", {})
-    prompt = sample.get("prompt", "Choose one or more categories")
-    items = sample.get("items", ["Walls", "Floors", "Roofs", "Windows", "Doors"])
-    selected = sample.get("selected", ["Walls", "Roofs"])
-
-    lines = [
-        prompt,
-        "",
-        "Controls:",
-        "All",
-        "Clear",
-        "Done",
-        "—",
-        "",
-    ]
-
-    for item_name in items:
-        prefix = "✓ " if item_name in selected else "  "
-        lines.append(prefix + str(item_name))
-
-    show_info(
-        "\n".join(lines),
-        title=sample.get("title", "ADa Multi Select")
+    return choose_actions_toggle(
+        sample.get("items", ["Walls", "Floors", "Roofs", "Windows", "Doors"]),
+        title=sample.get("title", "ADa Multi Select"),
+        message=sample.get("prompt", "Choose one or more categories")
     )
-
 
 def preview_searchable_checklist_picker(item):
     from .pickers import pick_checklist
