@@ -74,7 +74,7 @@ def bulk_parameter_table_editor(rows, title="Edit Parameters (Bulk)"):
     )
     from System.Windows.Controls import (  # type: ignore
         Grid, Button, TextBlock, Border, StackPanel, ScrollViewer,
-        RowDefinition, ColumnDefinition, TextBox, CheckBox
+        RowDefinition, ColumnDefinition, TextBox, CheckBox, Orientation
     )
     from System.Windows.Media import (  # type: ignore
         SolidColorBrush, LinearGradientBrush, GradientStop,
@@ -306,7 +306,7 @@ def bulk_parameter_table_editor(rows, title="Edit Parameters (Bulk)"):
     root.Children.Add(footer)
 
     footer_panel = StackPanel()
-    footer_panel.Orientation = 0  # Horizontal
+    footer_panel.Orientation = Orientation.Horizontal
     footer_panel.HorizontalAlignment = HorizontalAlignment.Right
     footer.Child = footer_panel
 
