@@ -160,7 +160,7 @@ DIALOG_REGISTRY = [
     },
     {
         "name": "Grid Button Chooser",
-        "category": "Buttons",
+        "category": "Buttons Layouts",
         "description": "Compact grid of selectable buttons",
         "preview": preview_grid_buttons,
         "sample": {
