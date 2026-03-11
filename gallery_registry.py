@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from .gallery_previews import ( #type: ignore
-    preview_grid_buttons,
     preview_info_alert,
     preview_warning_alert,
     preview_error_alert,
@@ -16,6 +15,7 @@ from .gallery_previews import ( #type: ignore
     preview_small_buttons,
     preview_next_action,
     preview_completion_summary,
+    preview_bulk_parameter_setter,
 )
 
 DIALOG_REGISTRY = [
@@ -167,5 +167,25 @@ DIALOG_REGISTRY = [
             "prompt": "Choose a category",
             "items": ["Walls","Doors","Windows","Floors","Roofs","Columns"]
         },
-    },    
+    },   
+        {
+        "name": "Bulk Parameter Setter",
+        "category": "Editors",
+        "description": "Large workflow dialog for choosing a parameter and setting a value",
+        "preview": preview_bulk_parameter_setter,
+        "sample": {
+            "title": "Bulk Parameter Setter",
+            "prompt": "Choose a parameter to edit",
+            "parameters": [
+                "Comments",
+                "Mark",
+                "Fire Rating",
+                "Window Type",
+                "Jamb Liner",
+                "Glazing",
+            ],
+            "default_value": "Example Value",
+            "element_count": 12,
+        },
+    }, 
 ]
