@@ -148,3 +148,36 @@ def preview_grid_buttons(item):
         message=sample.get("prompt","Choose a category"),
         columns=3
     )
+
+def preview_bulk_parameter_setter(item):
+    from .editors import bulk_parameter_editor
+    from .alerts import show_info
+
+    sample = item.get("sample", {})
+
+    result = bulk_parameter_editor(
+        sample.get(
+            "parameters",
+            [
+                "Comments",
+                "Mark",
+                "Fire Rating",
+                "Window Type",
+                "Jamb Liner",
+                "Glazing",
+            ],
+        ),
+        title=sample.get("title", "Bulk Parameter Setter"),
+        message=sample.get("prompt", "Choose parameter and value"),
+    )
+
+    if not result:
+        return None
+
+    show_info(
+        "Preview only.\n\nParameter: {}\nValue: {}".format(
+            result["parameter"],
+            result["value"]
+        ),
+        title=sample.get("title", "Bulk Parameter Setter"),
+    )
