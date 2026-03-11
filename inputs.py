@@ -45,3 +45,22 @@ def ask_number(prompt="Enter number", title="Input", default=""):
         return int(txt)
     except Exception:
         return None
+
+def ask_start_number(title="Start Number"):
+    from .buttons import choose_action
+
+    choice = choose_action(
+        ["Start at 1", "Start at 10", "Start at 100", "Custom..."],
+        title=title,
+        message="Choose a starting number"
+    )
+
+    if choice == "Start at 1":
+        return "1"
+    if choice == "Start at 10":
+        return "10"
+    if choice == "Start at 100":
+        return "100"
+    if choice == "Custom...":
+        return ask_string("Enter starting number", title=title, default="1")
+    return None    

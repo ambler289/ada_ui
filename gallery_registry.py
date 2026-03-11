@@ -18,6 +18,17 @@ from .gallery_previews import ( #type: ignore
     preview_grid_buttons,
     preview_bulk_parameter_setter,
     preview_bulk_parameter_table_editor,
+
+    # new previews
+    preview_big_button_launcher,
+    preview_big_button_toggle_multi,
+    preview_searchable_checklist_picker,
+    preview_start_number_picker,
+    preview_info_result_alert,
+    preview_parameter_form,
+    preview_folder_creation_report,
+    preview_progress_window,
+    preview_confirmation_dialog,
 )
 
 DIALOG_REGISTRY = [
@@ -31,7 +42,7 @@ DIALOG_REGISTRY = [
             "message": "This is the standard ADa info alert.",
         },
     },
-        {
+    {
         "name": "Warning Alert",
         "category": "Alerts",
         "description": "Branded warning message dialog",
@@ -62,6 +73,44 @@ DIALOG_REGISTRY = [
         },
     },
     {
+        "name": "Confirmation Dialog",
+        "category": "Alerts",
+        "description": "ADa confirm/cancel prompt for destructive or bulk actions.",
+        "preview": preview_confirmation_dialog,
+        "sample": {
+            "title": "Confirm Action",
+            "message": "Delete 34 sheets?\n\nThis action cannot be undone.",
+        },
+    },
+    {
+        "name": "Info / Result Alert",
+        "category": "Alerts",
+        "description": "General purpose ADa success/info dialog for finished operations.",
+        "preview": preview_info_result_alert,
+        "sample": {
+            "title": "ADa Tool Summary",
+            "message": "Project parameters updated successfully.\n\nWarnings: 0\nErrors: 0",
+        },
+    },
+    {
+        "name": "Folder Creation Report",
+        "category": "Alerts",
+        "description": "Multi-line report dialog showing created folders and skipped items.",
+        "preview": preview_folder_creation_report,
+        "sample": {
+            "title": "Project Folders",
+            "message": (
+                "Folders created:\n"
+                "01_Admin\n"
+                "02_Concept\n"
+                "03_Design\n\n"
+                "Details:\n"
+                "04_Consultants already existed\n"
+                "05_Renders created"
+            ),
+        },
+    },
+    {
         "name": "String Input",
         "category": "Inputs",
         "description": "Single-line text input",
@@ -81,6 +130,18 @@ DIALOG_REGISTRY = [
             "title": "ADa UI Preview",
             "prompt": "Enter a sample number",
             "default": "25",
+        },
+    },
+    {
+        "name": "Start Number Picker",
+        "category": "Inputs",
+        "description": "Preset number chooser with optional custom entry.",
+        "preview": preview_start_number_picker,
+        "sample": {
+            "title": "Start Number",
+            "prompt": "Choose a starting number",
+            "items": ["Start at 1", "Start at 10", "Start at 100", "Custom..."],
+            "default": "1",
         },
     },
     {
@@ -106,6 +167,24 @@ DIALOG_REGISTRY = [
         },
     },
     {
+        "name": "Searchable Checklist Picker",
+        "category": "Pickers",
+        "description": "Searchable checkbox picker with Select All / None and OK / Cancel.",
+        "preview": preview_searchable_checklist_picker,
+        "sample": {
+            "title": "Select Views",
+            "prompt": "Search and select one or more views",
+            "items": [
+                "SEC-01 Section",
+                "SEC-02 Section",
+                "NEW-01 Floor Plan",
+                "NEW-02 Floor Plan",
+                "WORK-01 Roof Plan",
+                "WORK-02 Drainage Plan",
+            ],
+        },
+    },
+    {
         "name": "Big Button Chooser",
         "category": "Buttons",
         "description": "Large single-select action buttons",
@@ -116,7 +195,18 @@ DIALOG_REGISTRY = [
             "items": ["Pin Elements", "Unpin Elements", "Cancel"],
         },
     },
-        {
+    {
+        "name": "Big Button Launcher",
+        "category": "Buttons",
+        "description": "Large branded launcher for choosing one primary action.",
+        "preview": preview_big_button_launcher,
+        "sample": {
+            "title": "ADa Action Launcher",
+            "prompt": "Choose an action",
+            "items": ["Renumber Sheets", "Rename Views", "Adjust Crops", "Project Startup"],
+        },
+    },
+    {
         "name": "Small Button Chooser",
         "category": "Buttons",
         "description": "Compact action selector with custom buttons",
@@ -138,7 +228,30 @@ DIALOG_REGISTRY = [
             "items": ["Walls", "Doors", "Windows", "Floors"],
         },
     },
-        {
+    {
+        "name": "Big Button Toggle Multi",
+        "category": "Buttons",
+        "description": "Toggle-style multi-select pattern with All / Clear / Done workflow.",
+        "preview": preview_big_button_toggle_multi,
+        "sample": {
+            "title": "ADa Multi Select",
+            "prompt": "Choose one or more categories",
+            "items": ["Walls", "Floors", "Roofs", "Windows", "Doors"],
+            "selected": ["Walls", "Roofs"],
+        },
+    },
+    {
+        "name": "Grid Button Chooser",
+        "category": "Buttons Layouts",
+        "description": "Compact grid of selectable buttons",
+        "preview": preview_grid_buttons,
+        "sample": {
+            "title": "ADa UI Preview",
+            "prompt": "Choose a category",
+            "items": ["Walls", "Doors", "Windows", "Floors", "Roofs", "Columns"]
+        },
+    },
+    {
         "name": "Next Action Chooser",
         "category": "Workflows",
         "description": "Repeat / change mode / finish workflow pattern",
@@ -160,17 +273,18 @@ DIALOG_REGISTRY = [
         },
     },
     {
-        "name": "Grid Button Chooser",
-        "category": "Buttons Layouts",
-        "description": "Compact grid of selectable buttons",
-        "preview": preview_grid_buttons,
+        "name": "Progress Window",
+        "category": "Workflows",
+        "description": "Progress/status window pattern for longer-running tools.",
+        "preview": preview_progress_window,
         "sample": {
-            "title": "ADa UI Preview",
-            "prompt": "Choose a category",
-            "items": ["Walls","Doors","Windows","Floors","Roofs","Columns"]
+            "title": "Processing Views",
+            "message": "Processing 12 of 36 views...",
+            "current": 12,
+            "total": 36,
         },
-    },   
-        {
+    },
+    {
         "name": "Bulk Parameter Setter",
         "category": "Editors",
         "description": "Large workflow dialog for choosing a parameter and setting a value",
@@ -189,8 +303,8 @@ DIALOG_REGISTRY = [
             "default_value": "Example Value",
             "element_count": 12,
         },
-    }, 
-        {
+    },
+    {
         "name": "Bulk Parameter Table Editor",
         "category": "Editors",
         "description": "Large table-based bulk editor for parameter values",
@@ -240,6 +354,21 @@ DIALOG_REGISTRY = [
                     "unit": "mm",
                     "kind": "text",
                 },
+            ],
+        },
+    },
+    {
+        "name": "Parameter Form",
+        "category": "Editors",
+        "description": "Structured multi-field form for project or parameter data entry.",
+        "preview": preview_parameter_form,
+        "sample": {
+            "title": "Project Parameters",
+            "fields": [
+                {"label": "Project Number", "value": "25-001"},
+                {"label": "Client Name", "value": "Sample Client"},
+                {"label": "Street", "value": "123 Example Road"},
+                {"label": "City", "value": "Wellington"},
             ],
         },
     },

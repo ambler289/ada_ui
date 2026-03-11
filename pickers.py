@@ -62,3 +62,35 @@ def pick_many(items, title="Select", prompt=None, name_attr=None, to_str=None):
         name_attr=name_attr,
         to_str=to_str
     )
+
+
+def pick_checklist(items, title="ADa", prompt="Search and select", multiselect=True, name_attr=None, to_str=None):
+    """
+    Searchable checklist-style picker.
+
+    Intended for richer multi-select workflows such as:
+    - view selection
+    - category selection
+    - family/type selection
+    - checklist-based review dialogs
+
+    For now this falls back to the standard searchable list picker.
+    Later it can be upgraded to a custom checkbox/search UI without
+    changing calling scripts.
+    """
+    if multiselect:
+        return pick_many(
+            items,
+            title=title,
+            prompt=prompt,
+            name_attr=name_attr,
+            to_str=to_str
+        )
+
+    return pick_one(
+        items,
+        title=title,
+        prompt=prompt,
+        name_attr=name_attr,
+        to_str=to_str
+    )

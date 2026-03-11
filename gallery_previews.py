@@ -242,3 +242,99 @@ def preview_bulk_parameter_table_editor(item):
         rows,
         title=sample.get("title", "Edit Parameters (Bulk)")
     )
+
+
+# ----------------------------------------------------------------------
+# New gallery previews
+# ----------------------------------------------------------------------
+
+def preview_big_button_launcher(item):
+    from .buttons import choose_action  # type: ignore
+
+    sample = item.get("sample", {})
+    return choose_action(
+        sample.get("items", ["Renumber Sheets", "Rename Views", "Adjust Crops", "Project Startup"]),
+        title=sample.get("title", "ADa Action Launcher"),
+        message=sample.get("prompt", "Choose an action")
+    )
+
+
+def preview_big_button_toggle_multi(item):
+    from .alerts import show_info
+
+    sample = item.get("sample", {})
+    prompt = sample.get("prompt", "Choose one or more categories")
+    items = sample.get("items", ["Walls", "Floors", "Roofs", "Windows", "Doors"])
+    selected = sample.get("selected", ["Walls", "Roofs"])
+
+    lines = [
+        prompt,
+        "",
+        "Controls:",
+        "All",
+        "Clear",
+        "Done",
+        "—",
+        "",
+    ]
+
+    for item_name in items:
+        prefix = "✓ " if item_name in selected else "  "
+        lines.append(prefix + str(item_name))
+
+    show_info(
+        "\n".join(lines),
+        title=sample.get("title", "ADa Multi Select")
+    )
+
+def preview_start_number_picker(item):
+    from .buttons import choose_action  # type: ignore
+
+    sample = item.get("sample", {})
+    return choose_action(
+        sample.get("items", ["Start at 1", "Start at 10", "Start at 100", "Custom..."]),
+        title=sample.get("title", "Start Number"),
+        message=sample.get("prompt", "Choose a starting number")
+    )
+
+
+def preview_info_result_alert(item):
+    return preview_info_alert(item)
+
+
+def preview_parameter_form(item):
+    from .editors import parameter_form
+
+    sample = item.get("sample", {})
+    fields = sample.get("fields", [])
+
+    return parameter_form(
+        fields,
+        title=sample.get("title", "Parameter Form"),
+        message=sample.get("message", "Edit the example fields below.")
+    )
+
+
+def preview_folder_creation_report(item):
+    return preview_info_alert(item)
+
+
+def preview_progress_window(item):
+    from .alerts import show_info
+
+    sample = item.get("sample", {})
+    title = sample.get("title", "Progress")
+    message = sample.get("message", "Processing...")
+    current = sample.get("current", 0)
+    total = sample.get("total", 0)
+
+    progress_line = "Progress: {} / {}".format(current, total) if total else "Progress: in progress"
+
+    show_info(
+        "{}\n\n{}".format(message, progress_line),
+        title=title
+    )
+
+
+def preview_confirmation_dialog(item):
+    return preview_yes_no(item)
