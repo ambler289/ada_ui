@@ -84,6 +84,11 @@ def bulk_parameter_table_editor(rows, title="Edit Parameters (Bulk)"):
     from System.Windows.Input import MouseButtonState  # type: ignore
 
     try:
+        from System.Windows import GridLength  # type: ignore
+    except Exception:
+        GridLength = None
+
+    try:
         from System.Windows.Media.Effects import DropShadowEffect  # type: ignore
     except Exception:
         DropShadowEffect = None
@@ -198,7 +203,7 @@ def bulk_parameter_table_editor(rows, title="Edit Parameters (Bulk)"):
 
     # ---------------- Body ----------------
     body = Border()
-    body.Margin = Thickness(24, 18, 24, 10)
+    body.Margin = Thickness(24, 16, 24, 8)
     Grid.SetRow(body, 1)
     root.Children.Add(body)
 
@@ -218,7 +223,7 @@ def bulk_parameter_table_editor(rows, title="Edit Parameters (Bulk)"):
         tb.Text = text
         tb.Foreground = SolidColorBrush(FG_LIGHT)
         tb.FontSize = 14
-        tb.Margin = Thickness(4, 0, 12, 8)
+        tb.Margin = Thickness(4, 0, 8, 4)
         Grid.SetColumn(tb, col)
         labels_grid.Children.Add(tb)
 
@@ -228,7 +233,7 @@ def bulk_parameter_table_editor(rows, title="Edit Parameters (Bulk)"):
     _mk_header("Unit", 3)
 
     scroller = ScrollViewer()
-    scroller.Height = 360
+    scroller.Height = 320
     body_stack.Children.Add(scroller)
 
     table = Grid()
@@ -241,7 +246,14 @@ def bulk_parameter_table_editor(rows, title="Edit Parameters (Bulk)"):
     editors = []
 
     for row_idx, row in enumerate(data_rows):
-        table.RowDefinitions.Add(RowDefinition())
+        row_def = RowDefinition()
+        if GridLength is not None:
+            try:
+                row_def.Height = GridLength.Auto
+            except Exception:
+                pass
+        row_def.MinHeight = 24
+        table.RowDefinitions.Add(row_def)
 
         param_name = str(row.get("parameter", ""))
         current_val = str(row.get("current", ""))
@@ -254,7 +266,8 @@ def bulk_parameter_table_editor(rows, title="Edit Parameters (Bulk)"):
         tb_param.Text = param_name
         tb_param.Foreground = SolidColorBrush(FG_LIGHT)
         tb_param.FontSize = 13
-        tb_param.Margin = Thickness(4, 4, 12, 8)
+        tb_param.Margin = Thickness(4, 2, 8, 2)
+        tb_param.VerticalAlignment = VerticalAlignment.Center
         Grid.SetRow(tb_param, row_idx)
         Grid.SetColumn(tb_param, 0)
         table.Children.Add(tb_param)
@@ -264,7 +277,8 @@ def bulk_parameter_table_editor(rows, title="Edit Parameters (Bulk)"):
         tb_current.Text = current_val
         tb_current.Foreground = SolidColorBrush(FG_LIGHT)
         tb_current.FontSize = 13
-        tb_current.Margin = Thickness(4, 4, 12, 8)
+        tb_current.Margin = Thickness(4, 2, 8, 2)
+        tb_current.VerticalAlignment = VerticalAlignment.Center
         Grid.SetRow(tb_current, row_idx)
         Grid.SetColumn(tb_current, 1)
         table.Children.Add(tb_current)
@@ -276,12 +290,14 @@ def bulk_parameter_table_editor(rows, title="Edit Parameters (Bulk)"):
                 editor.IsChecked = bool(new_val)
             except Exception:
                 editor.IsChecked = False
-            editor.Margin = Thickness(4, 4, 12, 8)
+            editor.Margin = Thickness(4, 2, 8, 2)
+            editor.VerticalAlignment = VerticalAlignment.Center
         else:
             editor = TextBox()
             editor.Text = str(new_val)
-            editor.Height = 30
-            editor.Margin = Thickness(4, 0, 12, 8)
+            editor.Height = 24
+            editor.Margin = Thickness(4, 0, 8, 2)
+            editor.VerticalAlignment = VerticalAlignment.Center
 
         Grid.SetRow(editor, row_idx)
         Grid.SetColumn(editor, 2)
@@ -292,7 +308,8 @@ def bulk_parameter_table_editor(rows, title="Edit Parameters (Bulk)"):
         tb_unit.Text = unit_val
         tb_unit.Foreground = SolidColorBrush(FG_LIGHT)
         tb_unit.FontSize = 13
-        tb_unit.Margin = Thickness(4, 4, 4, 8)
+        tb_unit.Margin = Thickness(4, 2, 4, 2)
+        tb_unit.VerticalAlignment = VerticalAlignment.Center
         Grid.SetRow(tb_unit, row_idx)
         Grid.SetColumn(tb_unit, 3)
         table.Children.Add(tb_unit)
