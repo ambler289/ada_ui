@@ -6,7 +6,6 @@ clr.AddReference("System")
 clr.AddReference("System.Drawing")
 clr.AddReference("System.Windows.Forms")
 
-from System import Action  # type: ignore
 from System.Drawing import (  # type: ignore
     Color,
     Font,
@@ -15,8 +14,6 @@ from System.Drawing import (  # type: ignore
     Rectangle,
     Size,
     SolidBrush,
-    StringAlignment,
-    StringFormat,
     Drawing2D,
     Pen,
 )
@@ -32,6 +29,7 @@ from System.Windows.Forms import (  # type: ignore
     PaintEventHandler,
 )
 
+
 def _enum(enum_type, name):
     """Safe access to .NET enum members that collide with Python keywords."""
     try:
@@ -39,10 +37,11 @@ def _enum(enum_type, name):
     except Exception:
         return None
 
+
 class _ADaProgressBar(object):
     """Simple custom-painted progress bar panel substitute."""
+
     def __init__(self, owner, x, y, w, h):
-        import clr  # type: ignore
         clr.AddReference("System.Windows.Forms")
         from System.Windows.Forms import Panel  # type: ignore
 
@@ -90,7 +89,7 @@ class _ADaProgressBar(object):
             )
             g.FillRectangle(brush, fill_rect)
 
-        # subtle inner highlight line
+        # subtle inner highlight
         if fill_w > 4:
             hi_pen = Pen(Color.FromArgb(255, 255, 255))
             g.DrawLine(hi_pen, 2, 2, max(2, fill_w - 1), 2)
@@ -131,7 +130,6 @@ class ADaProgressDialog(Form):
         self.Text = title
         self.Width = 560
         self.Height = 220
-
         self.FormBorderStyle = _enum(FormBorderStyle, "None")
         self.StartPosition = FormStartPosition.CenterScreen
         self.MinimizeBox = False
@@ -214,8 +212,6 @@ class ADaProgressDialog(Form):
 
         self._update_count_text()
 
-    # ---------- painting ----------
-
     def _on_paint(self, sender, e):
         g = e.Graphics
         g.SmoothingMode = Drawing2D.SmoothingMode.AntiAlias
@@ -231,8 +227,8 @@ class ADaProgressDialog(Form):
         header_rect = Rectangle(0, 0, self.Width, self.HEADER_H)
         grad = Drawing2D.LinearGradientBrush(
             header_rect,
-            Color.FromArgb(92, 124, 250),   # ADa blue
-            Color.FromArgb(247, 89, 192),   # ADa pink
+            Color.FromArgb(92, 124, 250),
+            Color.FromArgb(247, 89, 192),
             Drawing2D.LinearGradientMode.Horizontal
         )
         g.FillRectangle(grad, header_rect)
@@ -242,20 +238,26 @@ class ADaProgressDialog(Form):
         g.DrawLine(sep_pen, 0, self.HEADER_H, self.Width, self.HEADER_H)
 
         # title text
-        sf = StringFormat()
-        sf.LineAlignment = StringAlignment.Center
-        sf.Alignment = StringAlignment.Near
-
-        title_rect = Rectangle(18, 0, self.Width - 80, self.HEADER_H)
-        g.DrawString(self.Text, self._font_title, SolidBrush(Color.White), title_rect, sf)
+        title_brush = SolidBrush(Color.White)
+        g.DrawString(str(self.Text), self._font_title, title_brush, 18.0, 16.0)
 
         # close X
         close_rect = Rectangle(self.Width - 42, 12, 20, 20)
         x_pen = Pen(Color.FromArgb(255, 255, 255), 2)
-        g.DrawLine(x_pen, close_rect.Left, close_rect.Top, close_rect.Right, close_rect.Bottom)
-        g.DrawLine(x_pen, close_rect.Right, close_rect.Top, close_rect.Left, close_rect.Bottom)
-
-    # ---------- drag support ----------
+        g.DrawLine(
+            x_pen,
+            int(close_rect.Left),
+            int(close_rect.Top),
+            int(close_rect.Right),
+            int(close_rect.Bottom)
+        )
+        g.DrawLine(
+            x_pen,
+            int(close_rect.Right),
+            int(close_rect.Top),
+            int(close_rect.Left),
+            int(close_rect.Bottom)
+        )
 
     def _on_mouse_down(self, sender, args):
         try:
@@ -269,15 +271,16 @@ class ADaProgressDialog(Form):
         try:
             if self._allow_drag and self._drag_start is not None:
                 screen = self.PointToScreen(args.Location)
-                self.Location = Point(screen.X - self._drag_start.X, screen.Y - self._drag_start.Y)
+                self.Location = Point(
+                    screen.X - self._drag_start.X,
+                    screen.Y - self._drag_start.Y
+                )
         except Exception:
             pass
 
     def _on_mouse_up(self, sender, args):
         self._allow_drag = False
         self._drag_start = None
-
-    # ---------- internal helpers ----------
 
     def _update_count_text(self):
         if self._total <= 0:
@@ -308,8 +311,6 @@ class ADaProgressDialog(Form):
         self.btn_cancel.Enabled = False
         self.btn_cancel.BackColor = Color.FromArgb(160, 160, 165)
         self._refresh_ui()
-
-    # ---------- public API ----------
 
     def show_modeless(self):
         self.Show()
@@ -349,6 +350,7 @@ class ADaProgressDialog(Form):
             self.progress.value = self.progress.maximum
         except Exception:
             pass
+
         self._set_status(message)
         self._update_count_text()
         self.btn_cancel.Enabled = False
