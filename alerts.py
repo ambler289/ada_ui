@@ -58,3 +58,32 @@ def show_buttons(buttons, title="Choose", message="Select an option"):
         )
 
     return None
+
+def show_result(message, title="ADa Tool Summary", warnings=0, errors=0, details=None):
+    """
+    Branded summary/result dialog for completed operations.
+
+    message: main summary line
+    warnings: integer warning count
+    errors: integer error count
+    details: optional list of extra lines
+    """
+    lines = [str(message).strip()]
+
+    lines.append("")
+    lines.append("Warnings: {}".format(int(warnings)))
+    lines.append("Errors: {}".format(int(errors)))
+
+    if details:
+        extra = [str(x) for x in details if x is not None and str(x).strip()]
+        if extra:
+            lines.append("")
+            lines.extend(extra)
+
+    body = "\n".join(lines)
+
+    f = _get_forms_obj()
+    if hasattr(f, "alert"):
+        return f.alert(body, title=str(title))
+
+    return None
