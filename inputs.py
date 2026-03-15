@@ -46,6 +46,7 @@ def ask_number(prompt="Enter number", title="Input", default=""):
     except Exception:
         return None
 
+
 def ask_start_number(title="Start Number"):
     from .buttons import choose_action
 
@@ -65,86 +66,34 @@ def ask_start_number(title="Start Number"):
         return ask_string("Enter starting number", title=title, default="1")
     return None
 
-def ask_folder_and_options(title="Select Folder", checkbox_label="Include subfolders", checkbox_default=False):
+
+def ask_include_subfolders(title="PNG Creator", default=False):
     """
-    Small branded options dialog for simple batch settings.
+    ADa-themed wrapper for a single optional batch setting.
 
     Returns:
-        {"checked": bool} on OK
+        {"checked": bool} on confirm
         None on cancel
     """
-    try:
-        from .buttons import choose_action
-    except Exception:
-        choose_action = None
+    from .buttons import choose_actions
 
-    # If you already have a branded forms helper that supports yes/no or custom
-    # layouts, swap this implementation later. For now keep it simple and ADa-safe.
-    if choose_action:
-        choice = choose_action(
-            ["OK", "Cancel"],
-            title=title,
-            message=checkbox_label + ("\n\nDefault: On" if checkbox_default else "\n\nDefault: Off")
-        )
-        if choice != "OK":
-            return None
+    selected = choose_actions(
+        ["Include subfolders"],
+        title=title,
+        message="Choose one or more options",
+        include_all=False
+    )
 
-    # Fallback to current simple path until a richer branded checkbox dialog exists.
-    try:
-        import clr  # type: ignore
-        clr.AddReference("System")
-        clr.AddReference("System.Drawing")
-        clr.AddReference("System.Windows.Forms")
-
-        from System.Drawing import Point, Size  # type: ignore
-        from System.Windows.Forms import (  # type: ignore
-            Button,
-            CheckBox,
-            DialogResult,
-            Form,
-            FormBorderStyle,
-            FormStartPosition,
-        )
-
-        form = Form()
-        form.Text = title
-        form.Width = 360
-        form.Height = 150
-        form.FormBorderStyle = FormBorderStyle.FixedDialog
-        form.StartPosition = FormStartPosition.CenterScreen
-        form.MinimizeBox = False
-        form.MaximizeBox = False
-        form.TopMost = True
-
-        chk = CheckBox()
-        chk.Text = checkbox_label
-        chk.Checked = bool(checkbox_default)
-        chk.Location = Point(20, 20)
-        chk.Size = Size(250, 24)
-
-        btn_ok = Button()
-        btn_ok.Text = "OK"
-        btn_ok.Width = 100
-        btn_ok.Location = Point(60, 60)
-        btn_ok.DialogResult = DialogResult.OK
-
-        btn_cancel = Button()
-        btn_cancel.Text = "Cancel"
-        btn_cancel.Width = 100
-        btn_cancel.Location = Point(170, 60)
-        btn_cancel.DialogResult = DialogResult.Cancel
-
-        form.Controls.Add(chk)
-        form.Controls.Add(btn_ok)
-        form.Controls.Add(btn_cancel)
-        form.AcceptButton = btn_ok
-        form.CancelButton = btn_cancel
-
-        result = form.ShowDialog()
-        if result != DialogResult.OK:
-            return None
-
-        return {"checked": bool(chk.Checked)}
-
-    except Exception:
+    if selected is None:
         return None
+
+    # Some chooser implementations may return a single string, some a list/tuple/set
+    if isinstance(selected, str):
+        checked = (selected == "Include subfolders")
+    else:
+        try:
+            checked = "Include subfolders" in selected
+        except Exception:
+            checked = bool(default)
+
+    return {"checked": bool(checked)}
