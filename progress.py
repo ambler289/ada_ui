@@ -147,7 +147,7 @@ class ADaProgressDialog(Form):
         # progress bar
         self.progress = ProgressBar()
         self.progress.Location = Point(20, 144)
-        self.progress.Size = Size(410, 18)
+        self.progress.Size = Size(390, 20)
         self.progress.Minimum = 0
         self.progress.Maximum = 1
         self.progress.Value = 0
@@ -162,7 +162,7 @@ class ADaProgressDialog(Form):
         self.btn_cancel.Text = "Cancel"
         self.btn_cancel.Width = 90
         self.btn_cancel.Height = 30
-        self.btn_cancel.Location = Point(440, 138)
+        self.btn_cancel.Location = Point(420, 138)
         self.btn_cancel.Enabled = bool(allow_cancel)
         self.btn_cancel.FlatStyle = _enum(FlatStyle, "Standard", FlatStyle.Standard)
         self.btn_cancel.Font = self._font_button
