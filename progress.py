@@ -11,11 +11,9 @@ from System.Drawing import (  # type: ignore
     Font,
     FontStyle,
     Point,
-    Rectangle,
     Size,
     SolidBrush,
     Drawing2D,
-    Pen,
 )
 from System.Windows.Forms import (  # type: ignore
     Application,
@@ -29,7 +27,6 @@ from System.Windows.Forms import (  # type: ignore
     FlatStyle,
     DockStyle,
     ProgressBarStyle,
-    BorderStyle,
 )
 
 
@@ -80,14 +77,15 @@ class _BodyPanel(Panel):
 
     def __init__(self):
         Panel.__init__(self)
-        self.Location = Point(0, 54)
-        self.Size = Size(560, 170)
+        self.Dock = DockStyle.Fill
         self.BackColor = Color.FromArgb(28, 34, 48)
 
 
 class ADaProgressDialog(Form):
     """
-    ADa-styled progress dialog with the same public API:
+    ADa-styled progress dialog.
+
+    Public API:
       - show_modeless()
       - close_safe()
       - set_total(total)
@@ -124,17 +122,17 @@ class ADaProgressDialog(Form):
         self._font_meta = Font("Segoe UI", 8.75, FontStyle.Regular)
         self._font_button = Font("Segoe UI", 9, FontStyle.Bold)
 
-        # panels
+        # header + body
         self.header = _HeaderPanel(self)
-        self.Controls.Add(self.header)
-
         self.body = _BodyPanel()
+
         self.Controls.Add(self.body)
+        self.Controls.Add(self.header)
 
         # subtitle
         self.lbl_subtitle = Label()
         self.lbl_subtitle.Text = self._subtitle
-        self.lbl_subtitle.Location = Point(34, 78)
+        self.lbl_subtitle.Location = Point(28, 26)
         self.lbl_subtitle.Size = Size(470, 24)
         self.lbl_subtitle.Font = self._font_subtitle
         self.lbl_subtitle.ForeColor = Color.FromArgb(235, 238, 245)
@@ -143,8 +141,8 @@ class ADaProgressDialog(Form):
         # status
         self.lbl_status = Label()
         self.lbl_status.Text = self._status
-        self.lbl_status.Location = Point(34, 112)
-        self.lbl_status.Size = Size(470, 24)
+        self.lbl_status.Location = Point(28, 58)
+        self.lbl_status.Size = Size(470, 26)
         self.lbl_status.Font = self._font_status
         self.lbl_status.ForeColor = Color.White
         self.lbl_status.BackColor = self.body.BackColor
@@ -152,7 +150,7 @@ class ADaProgressDialog(Form):
         # count
         self.lbl_count = Label()
         self.lbl_count.Text = "Preparing..."
-        self.lbl_count.Location = Point(34, 138)
+        self.lbl_count.Location = Point(28, 86)
         self.lbl_count.Size = Size(470, 20)
         self.lbl_count.Font = self._font_meta
         self.lbl_count.ForeColor = Color.FromArgb(200, 206, 220)
@@ -160,7 +158,7 @@ class ADaProgressDialog(Form):
 
         # progress bar
         self.progress = ProgressBar()
-        self.progress.Location = Point(34, 168)
+        self.progress.Location = Point(28, 118)
         self.progress.Size = Size(330, 18)
         self.progress.Minimum = 0
         self.progress.Maximum = 1
@@ -170,14 +168,13 @@ class ADaProgressDialog(Form):
             "Continuous",
             self.progress.Style
         )
-        self.progress.ForeColor = Color.FromArgb(92, 124, 250)
 
         # cancel button
         self.btn_cancel = Button()
         self.btn_cancel.Text = "Cancel"
         self.btn_cancel.Width = 98
         self.btn_cancel.Height = 34
-        self.btn_cancel.Location = Point(396, 160)
+        self.btn_cancel.Location = Point(390, 110)
         self.btn_cancel.Enabled = bool(allow_cancel)
         self.btn_cancel.FlatStyle = _enum(FlatStyle, "Flat", FlatStyle.Flat)
         try:
@@ -190,6 +187,7 @@ class ADaProgressDialog(Form):
         self.btn_cancel.UseVisualStyleBackColor = False
         self.btn_cancel.Click += self._on_cancel
 
+        # add content to body panel
         self.body.Controls.Add(self.lbl_subtitle)
         self.body.Controls.Add(self.lbl_status)
         self.body.Controls.Add(self.lbl_count)
