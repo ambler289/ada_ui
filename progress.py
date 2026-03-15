@@ -132,7 +132,7 @@ class ADaProgressDialog(Form):
         # subtitle
         self.lbl_subtitle = Label()
         self.lbl_subtitle.Text = self._subtitle
-        self.lbl_subtitle.Location = Point(28, 24)
+        self.lbl_subtitle.Location = Point(28, 22)
         self.lbl_subtitle.Size = Size(470, 24)
         self.lbl_subtitle.Font = self._font_subtitle
         self.lbl_subtitle.ForeColor = Color.FromArgb(235, 238, 245)
@@ -141,7 +141,7 @@ class ADaProgressDialog(Form):
         # status
         self.lbl_status = Label()
         self.lbl_status.Text = self._status
-        self.lbl_status.Location = Point(28, 52)
+        self.lbl_status.Location = Point(28, 48)
         self.lbl_status.Size = Size(470, 26)
         self.lbl_status.Font = self._font_status
         self.lbl_status.ForeColor = Color.White
@@ -150,7 +150,7 @@ class ADaProgressDialog(Form):
         # count
         self.lbl_count = Label()
         self.lbl_count.Text = "Preparing..."
-        self.lbl_count.Location = Point(28, 78)
+        self.lbl_count.Location = Point(28, 72)
         self.lbl_count.Size = Size(470, 20)
         self.lbl_count.Font = self._font_meta
         self.lbl_count.ForeColor = Color.FromArgb(200, 206, 220)
@@ -158,7 +158,7 @@ class ADaProgressDialog(Form):
 
         # progress bar
         self.progress = ProgressBar()
-        self.progress.Location = Point(28, 102)
+        self.progress.Location = Point(28, 96)
         self.progress.Size = Size(330, 18)
         self.progress.Minimum = 0
         self.progress.Maximum = 1
@@ -168,13 +168,14 @@ class ADaProgressDialog(Form):
             "Continuous",
             self.progress.Style
         )
+        self.progress.ForeColor = Color.FromArgb(92, 124, 250)
 
         # cancel button
         self.btn_cancel = Button()
         self.btn_cancel.Text = "Cancel"
-        self.btn_cancel.Width = 98
-        self.btn_cancel.Height = 34
-        self.btn_cancel.Location = Point(390, 94)
+        self.btn_cancel.Width = 110
+        self.btn_cancel.Height = 36
+        self.btn_cancel.Location = Point(380, 92)
         self.btn_cancel.Enabled = bool(allow_cancel)
         self.btn_cancel.FlatStyle = _enum(FlatStyle, "Flat", FlatStyle.Flat)
         try:
