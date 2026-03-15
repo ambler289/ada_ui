@@ -59,15 +59,10 @@ def show_buttons(buttons, title="Choose", message="Select an option"):
 
     return None
 
-def show_result(message, title="ADa Tool Summary", warnings=0, errors=0, allow_rerun=False):
+def show_result(message, title="ADa Tool Summary", warnings=0, errors=0):
     """
     Branded ADa summary dialog.
-
-    Returns:
-        "rerun" if user chooses to run another batch
-        "ok" otherwise
     """
-
     lines = [str(message).strip(), ""]
     lines.append("Warnings: {}".format(int(warnings)))
     lines.append("Errors: {}".format(int(errors)))
@@ -75,21 +70,32 @@ def show_result(message, title="ADa Tool Summary", warnings=0, errors=0, allow_r
     body = "\n".join(lines)
 
     f = _get_forms_obj()
-
-    if allow_rerun and hasattr(f, "alert"):
-        # Two-button dialog
-        result = f.alert(
-            body,
-            title=str(title),
-            options=["Run Another", "OK"]
-        )
-
-        if result == "Run Another":
-            return "rerun"
-
-        return "ok"
-
     if hasattr(f, "alert"):
-        f.alert(body, title=str(title))
+        return f.alert(body, title=str(title))
+
+    return None
+
+
+def ask_rerun_result(message, title="ADa Tool Summary", warnings=0, errors=0):
+    """
+    Branded ADa summary dialog with Run Another / OK choice.
+
+    Returns:
+        "rerun" or "ok"
+    """
+    lines = [str(message).strip(), ""]
+    lines.append("Warnings: {}".format(int(warnings)))
+    lines.append("Errors: {}".format(int(errors)))
+
+    body = "\n".join(lines)
+
+    choice = show_buttons(
+        ["Run Another", "OK"],
+        title=title,
+        message=body
+    )
+
+    if choice == "Run Another":
+        return "rerun"
 
     return "ok"
