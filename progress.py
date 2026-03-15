@@ -25,14 +25,16 @@ from System.Windows.Forms import (  # type: ignore
     Panel,
     ProgressBar,
     FlatStyle,
+    DockStyle,
+    ProgressBarStyle,
 )
 
 
-def _enum(enum_type, name):
+def _enum(enum_type, name, fallback=None):
     try:
         return getattr(enum_type, name)
     except Exception:
-        return None
+        return fallback
 
 
 class _HeaderPanel(Panel):
@@ -42,7 +44,7 @@ class _HeaderPanel(Panel):
         Panel.__init__(self)
         self.owner = owner
         self.Height = 54
-        self.Dock = 1  # Top
+        self.Dock = DockStyle.Top
         self.Paint += self._on_paint
 
     def _on_paint(self, sender, e):
@@ -95,7 +97,7 @@ class ADaProgressDialog(Form):
         self.Text = title
         self.Width = 560
         self.Height = 215
-        self.FormBorderStyle = FormBorderStyle.FixedDialog
+        self.FormBorderStyle = _enum(FormBorderStyle, "FixedDialog", FormBorderStyle.FixedDialog)
         self.StartPosition = FormStartPosition.CenterScreen
         self.MinimizeBox = False
         self.MaximizeBox = False
@@ -148,7 +150,11 @@ class ADaProgressDialog(Form):
         self.progress.Minimum = 0
         self.progress.Maximum = 1
         self.progress.Value = 0
-        self.progress.Style = _enum(type(self.progress.Style), "Continuous") or self.progress.Style
+        self.progress.Style = _enum(
+            ProgressBarStyle,
+            "Continuous",
+            self.progress.Style
+        )
 
         # cancel button
         self.btn_cancel = Button()
@@ -157,7 +163,7 @@ class ADaProgressDialog(Form):
         self.btn_cancel.Height = 30
         self.btn_cancel.Location = Point(450, 143)
         self.btn_cancel.Enabled = bool(allow_cancel)
-        self.btn_cancel.FlatStyle = FlatStyle.Standard
+        self.btn_cancel.FlatStyle = _enum(FlatStyle, "Standard", FlatStyle.Standard)
         self.btn_cancel.Font = self._font_button
         self.btn_cancel.BackColor = Color.FromArgb(92, 124, 250)
         self.btn_cancel.ForeColor = Color.White
